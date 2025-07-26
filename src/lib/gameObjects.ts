@@ -577,6 +577,8 @@ export class Boss extends Phaser.GameObjects.Sprite {
   }
 
   private spreadShotAttack() {
+    if (!this.bullets || !this.scene) return
+    
     const bulletCount = 3 + this.phase
     const angleStep = Math.PI / (bulletCount + 1)
     const startAngle = Math.PI * 0.3
@@ -594,8 +596,11 @@ export class Boss extends Phaser.GameObjects.Sprite {
   }
 
   private rapidFireAttack() {
+    if (!this.bullets || !this.scene) return
+    
     for (let i = 0; i < this.phase * 2; i++) {
       this.scene.time.delayedCall(i * 80, () => {
+        if (!this.bullets || !this.scene) return
         const bullet = new Bullet(this.scene, this.x, this.y + 40, 'enemyBullet')
         bullet.setScale(0.8)
         bullet.setTint(0x4dabf7) // Blue tint for interceptor bullets
@@ -607,9 +612,12 @@ export class Boss extends Phaser.GameObjects.Sprite {
   }
 
   private missileBarrageAttack() {
+    if (!this.bullets || !this.scene) return
+    
     const missileCount = 2 + this.phase
     for (let i = 0; i < missileCount; i++) {
       this.scene.time.delayedCall(i * 150, () => {
+        if (!this.bullets || !this.scene) return
         const x = this.x + (i - missileCount/2) * 40
         const bullet = new Bullet(this.scene, x, this.y + 40, 'enemyBullet')
         bullet.setScale(1.8, 1.2)
@@ -632,6 +640,8 @@ export class Boss extends Phaser.GameObjects.Sprite {
   }
 
   private voidBeamAttack() {
+    if (!this.bullets || !this.scene) return
+    
     // Create a wide beam effect with void energy
     for (let i = -3; i <= 3; i++) {
       const bullet = new Bullet(this.scene, this.x + i * 15, this.y + 40, 'enemyBullet')
@@ -660,6 +670,11 @@ export class Boss extends Phaser.GameObjects.Sprite {
       this.healthBar.destroy()
     }
     
+    // Clean up bullets group
+    if (this.bullets) {
+      this.bullets.destroy(true) // destroyChildren = true
+    }
+    
     const nameText = this.scene.children.getByName('bossNameText')
     if (nameText) {
       nameText.destroy()
@@ -674,6 +689,11 @@ export class Boss extends Phaser.GameObjects.Sprite {
   }
 
   getBullets(): Phaser.GameObjects.Group {
+    // Safety check to ensure bullets group exists
+    if (!this.bullets || !this.scene || !this.scene.add) {
+      // Return an empty group if bullets group is not available
+      return { children: { entries: [] } } as Phaser.GameObjects.Group
+    }
     return this.bullets
   }
 }

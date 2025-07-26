@@ -157,11 +157,13 @@ export class GameScene extends Phaser.Scene {
       
       // Add boss bullets to the enemy bullets group for collision detection
       const bossBullets = bossObj.getBullets()
-      bossBullets.children.entries.forEach((bullet) => {
-        if (!this.enemyBullets.contains(bullet)) {
-          this.enemyBullets.add(bullet)
-        }
-      })
+      if (bossBullets && bossBullets.children && bossBullets.children.entries) {
+        bossBullets.children.entries.forEach((bullet) => {
+          if (!this.enemyBullets.contains(bullet)) {
+            this.enemyBullets.add(bullet)
+          }
+        })
+      }
     })
   }
 
