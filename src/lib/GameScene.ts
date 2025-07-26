@@ -291,7 +291,7 @@ export class GameScene extends Phaser.Scene {
     
     // Brief invulnerability
     this.player.setAlpha(0.5)
-    this.scene.tweens.add({
+    this.tweens.add({
       targets: this.player,
       alpha: 1,
       duration: 1000,
