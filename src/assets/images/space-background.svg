@@ -1,0 +1,45 @@
+<svg width="800" height="600" viewBox="0 0 800 600" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <radialGradient id="spaceGradient" cx="50%" cy="50%" r="70%">
+      <stop offset="0%" style="stop-color:#1e1b4b;stop-opacity:1" />
+      <stop offset="50%" style="stop-color:#0f0f23;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#000000;stop-opacity:1" />
+    </radialGradient>
+    <filter id="starGlow">
+      <feGaussianBlur stdDeviation="1" result="coloredBlur"/>
+      <feMerge> 
+        <feMergeNode in="coloredBlur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+  </defs>
+  
+  <!-- Space background -->
+  <rect width="800" height="600" fill="url(#spaceGradient)"/>
+  
+  <!-- Stars -->
+  <circle cx="100" cy="80" r="1" fill="#f8fafc" filter="url(#starGlow)" opacity="0.8"/>
+  <circle cx="200" cy="150" r="0.5" fill="#e2e8f0" opacity="0.6"/>
+  <circle cx="350" cy="100" r="1.5" fill="#f1f5f9" filter="url(#starGlow)" opacity="0.9"/>
+  <circle cx="500" cy="180" r="0.8" fill="#cbd5e1" opacity="0.7"/>
+  <circle cx="650" cy="120" r="1" fill="#f8fafc" filter="url(#starGlow)" opacity="0.8"/>
+  <circle cx="750" cy="200" r="0.5" fill="#e2e8f0" opacity="0.6"/>
+  
+  <circle cx="80" cy="300" r="0.8" fill="#94a3b8" opacity="0.7"/>
+  <circle cx="180" cy="380" r="1.2" fill="#f1f5f9" filter="url(#starGlow)" opacity="0.85"/>
+  <circle cx="320" cy="320" r="0.6" fill="#e2e8f0" opacity="0.6"/>
+  <circle cx="480" cy="420" r="1" fill="#f8fafc" filter="url(#starGlow)" opacity="0.8"/>
+  <circle cx="580" cy="350" r="0.7" fill="#cbd5e1" opacity="0.7"/>
+  <circle cx="720" cy="450" r="1.3" fill="#f1f5f9" filter="url(#starGlow)" opacity="0.9"/>
+  
+  <circle cx="50" cy="500" r="0.9" fill="#f8fafc" filter="url(#starGlow)" opacity="0.8"/>
+  <circle cx="250" cy="550" r="0.4" fill="#e2e8f0" opacity="0.5"/>
+  <circle cx="400" cy="520" r="1.1" fill="#f1f5f9" filter="url(#starGlow)" opacity="0.85"/>
+  <circle cx="600" cy="580" r="0.6" fill="#cbd5e1" opacity="0.6"/>
+  <circle cx="780" cy="550" r="0.8" fill="#94a3b8" opacity="0.7"/>
+  
+  <!-- Distant nebula -->
+  <ellipse cx="150" cy="250" rx="40" ry="20" fill="#6366f1" opacity="0.1"/>
+  <ellipse cx="600" cy="350" rx="60" ry="30" fill="#8b5cf6" opacity="0.08"/>
+  <ellipse cx="700" cy="150" rx="35" ry="15" fill="#06b6d4" opacity="0.12"/>
+</svg>

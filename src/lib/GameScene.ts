@@ -1,5 +1,11 @@
 import * as Phaser from 'phaser'
 import { Player, Enemy, Bullet } from '../lib/gameObjects'
+import { ParticleEffects } from '../lib/ParticleEffects'
+import playerShipSvg from '../assets/images/player-ship.svg'
+import enemyShipSvg from '../assets/images/enemy-ship.svg'
+import playerBulletSvg from '../assets/images/player-bullet.svg'
+import enemyBulletSvg from '../assets/images/enemy-bullet.svg'
+import spaceBackgroundSvg from '../assets/images/space-background.svg'
 
 export class GameScene extends Phaser.Scene {
   private player!: Player
@@ -14,35 +20,38 @@ export class GameScene extends Phaser.Scene {
   private enemySpawnTimer: number = 0
   private enemySpawnDelay: number = 1000
   private explosions!: Phaser.GameObjects.Group
-  private starfield!: Phaser.GameObjects.TileSprite
+  private background!: Phaser.GameObjects.Image
+  private stars!: Phaser.GameObjects.Group
 
   constructor() {
     super({ key: 'GameScene' })
   }
 
   preload() {
-    // Create simple colored rectangles as sprites
-    this.load.image('player', 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAYAAABzenr0AAAACXBIWXMAAA7EAAAOxAGVKw4bAAAA8ElEQVRYhe2WMQ6DMAxFX0OvwMpIR9YO7J3YmTqxMnVgZeTKXAFOQRMcJ05ChdSRflrHfv/ZcWzAsiypGEQkAWBrrQXnnKOqUkpp6//bACJqjDGttfbe3wNorZW1VgD4jgHnXFlVVWWM8VQUReWcez4A4IfWun9FREqp2Zroz0Frrbe+ADMzA8Cj4pK1dj//vSucc4cA8DZGax0553rnXOecu8a2lFK+AGJra+tWfd8/lFJtSqmdw15rfdkl+JttV0rZzSwi0jrnWufc1Tm3VVUVOeeKp6qqDhEJAOCciIaIaLDWCgC0DdN3X7zUx31cJEeyfQAbZD6XfcgRzAAAAABJRU5ErkJggg==')
+    // Load SVG assets
+    this.load.image('player', playerShipSvg)
+    this.load.image('enemy', enemyShipSvg)
+    this.load.image('playerBullet', playerBulletSvg)
+    this.load.image('enemyBullet', enemyBulletSvg)
+    this.load.image('spaceBackground', spaceBackgroundSvg)
     
-    this.load.image('enemy', 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAYAAABzenr0AAAACXBIWXMAAA7EAAAOxAGVKw4bAAAA6klEQVRYhe2WQQ6CMBBFXyOeQVfGJW5dufKMrlyZxI1L3XgGPYOegDegJzA2Y9u0P6VMCZrwk0nTmffpn5m2A4Cqqj4gTdNMnHNzEflW1/dJVVVf7/1ERLTX2hZCiL5pmmnbth8A4Hcv+c8FRHQCAJY/LgIgB4BVYzKb9swMEUkB4KQVVVXd4zjuuq47MMYVAC5KqbFSaj8MA8MYc1BK7WOMxyiKzjHGBwCMLcuaGGP6SimllCoEALttkc8FnPctIipjzFpEZkqpCyKqKKVWxtj3ZIx5dF13i6IoHMdxZoy5vvNFPBcA4AdACOEBAK21s/f+AdwOj9r0TtgAAAAASUVORK5CYII=')
-    
-    this.load.image('bullet', 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAgAAAAQCAYAAAArij59AAAACXBIWXMAAA7EAAAOxAGVKw4bAAAARklEQVQYlYVQQQoAIAgLfV//eX8VBcLiQnATpZSEw/8fEREAICJqrQ0AqCpVdR8zs7u7qiozs7tXVZlZIvKcczf/cCHE4QGWvBULhPAh2QAAAABJRU5ErkJggg==')
-    
-    // Create starfield background
-    this.load.image('star', 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAIAAAACCAYAAABytg0kAAAAEklEQVQIHWP8//8/AzYwiklkAQDeAgYBg+EvAAAAAAASUVORK5CYII=')
+    // Create simple star texture for particles
+    this.load.image('star', 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAQAAAAECAYAAACp8Z5+AAAAG0lEQVQIHWP8//8/AzYwiklkAQDiAwMDA+MjAAQBABAJ8FsAAAAASUVORK5CYII=')
   }
 
   create() {
     const { width, height } = this.cameras.main
 
-    // Create scrolling starfield
-    this.starfield = this.add.tileSprite(0, 0, width, height, 'star')
-    this.starfield.setOrigin(0, 0)
-    this.starfield.setTileScale(2, 2)
+    // Create beautiful space background
+    this.background = this.add.image(width / 2, height / 2, 'spaceBackground')
+    this.background.setDisplaySize(width, height)
+
+    // Add animated stars
+    this.createAnimatedStars()
 
     // Create player
     this.player = new Player(this, width / 2, height - 80)
-    this.player.setTint(0x00ff00) // Green tint
+    this.player.setScale(0.8) // Scale down the SVG
 
     // Create groups
     this.bullets = this.add.group()
@@ -52,17 +61,23 @@ export class GameScene extends Phaser.Scene {
     // Input
     this.spaceKey = this.input.keyboard!.addKey(Phaser.Input.Keyboard.KeyCodes.SPACE)
 
-    // UI
-    this.scoreText = this.add.text(16, 16, 'Score: 0', {
-      fontSize: '24px',
-      color: '#00ff00',
-      fontFamily: 'Orbitron'
+    // Enhanced UI with better styling
+    this.scoreText = this.add.text(20, 20, 'Score: 0', {
+      fontSize: '28px',
+      color: '#22d3ee',
+      fontFamily: 'Orbitron',
+      fontStyle: 'bold',
+      stroke: '#0891b2',
+      strokeThickness: 2
     })
 
-    this.livesText = this.add.text(16, 50, 'Lives: 3', {
-      fontSize: '24px',
-      color: '#00ff00',
-      fontFamily: 'Orbitron'
+    this.livesText = this.add.text(20, 60, 'Lives: 3', {
+      fontSize: '28px',
+      color: '#4fd1c7',
+      fontFamily: 'Orbitron',
+      fontStyle: 'bold',
+      stroke: '#0f766e',
+      strokeThickness: 2
     })
 
     // Collisions
@@ -73,8 +88,8 @@ export class GameScene extends Phaser.Scene {
   update(time: number, delta: number) {
     if (this.gameOver) return
 
-    // Scroll starfield
-    this.starfield.tilePositionY -= 1
+    // Animate background
+    this.animateBackground()
 
     // Update player
     this.player.update(time)
@@ -108,9 +123,27 @@ export class GameScene extends Phaser.Scene {
     }
   }
 
+  private createAnimatedStars() {
+    this.stars = ParticleEffects.createStarfield(this)
+  }
+
+  private animateBackground() {
+    // Slowly rotate the background for a dynamic space feel
+    this.background.rotation += 0.0005
+    
+    // Move stars slowly
+    this.stars.children.entries.forEach((star) => {
+      star.y += 0.5
+      if (star.y > this.cameras.main.height + 10) {
+        star.y = -10
+        star.x = Phaser.Math.Between(0, this.cameras.main.width)
+      }
+    })
+  }
+
   private fireBullet() {
-    const bullet = new Bullet(this, this.player.x, this.player.y - 20)
-    bullet.setTint(0x00ffff) // Cyan tint
+    const bullet = new Bullet(this, this.player.x, this.player.y - 30, 'playerBullet')
+    bullet.setScale(0.6)
     this.bullets.add(bullet)
   }
 
@@ -118,13 +151,16 @@ export class GameScene extends Phaser.Scene {
     const x = Phaser.Math.Between(50, this.cameras.main.width - 50)
     const speed = Phaser.Math.Between(100, 200)
     const enemy = new Enemy(this, x, -50, speed)
-    enemy.setTint(0xff4400) // Orange-red tint
+    enemy.setScale(0.7)
     this.enemies.add(enemy)
   }
 
   private bulletHitEnemy(bullet: Phaser.GameObjects.GameObject, enemy: Phaser.GameObjects.GameObject) {
-    // Create explosion effect
-    this.createExplosion(enemy.x, enemy.y)
+    // Create enhanced explosion effect
+    this.createExplosion(enemy.x, enemy.y, '#ff6b35')
+    
+    // Screen shake for impact
+    this.cameras.main.shake(100, 0.01)
     
     // Destroy objects
     bullet.destroy()
@@ -140,7 +176,10 @@ export class GameScene extends Phaser.Scene {
 
   private playerHitEnemy(player: Phaser.GameObjects.GameObject, enemy: Phaser.GameObjects.GameObject) {
     // Create explosion effect
-    this.createExplosion(enemy.x, enemy.y)
+    this.createExplosion(enemy.x, enemy.y, '#ff4757')
+    
+    // Strong screen shake for player hit
+    this.cameras.main.shake(200, 0.02)
     
     // Destroy enemy
     enemy.destroy()
@@ -154,34 +193,35 @@ export class GameScene extends Phaser.Scene {
     }
   }
 
-  private createExplosion(x: number, y: number) {
-    // Simple explosion effect using particles
-    const explosion = this.add.particles(x, y, 'star', {
-      speed: { min: 50, max: 150 },
-      scale: { start: 0.5, end: 0 },
-      tint: 0xff6600,
-      lifespan: 300,
-      quantity: 8
-    })
-    
-    // Remove after animation
-    this.time.delayedCall(300, () => {
-      explosion.destroy()
-    })
+  private createExplosion(x: number, y: number, color: string = '#ff6b35') {
+    ParticleEffects.createExplosion(this, x, y, color)
   }
 
   private endGame() {
     this.gameOver = true
     
-    // Game over text
+    // Create overlay
+    const overlay = this.add.rectangle(
+      this.cameras.main.centerX,
+      this.cameras.main.centerY,
+      this.cameras.main.width,
+      this.cameras.main.height,
+      0x000000,
+      0.7
+    )
+    
+    // Game over text with glow effect
     const gameOverText = this.add.text(
       this.cameras.main.centerX,
-      this.cameras.main.centerY - 50,
+      this.cameras.main.centerY - 60,
       'GAME OVER',
       {
-        fontSize: '48px',
-        color: '#ff4400',
-        fontFamily: 'Orbitron'
+        fontSize: '56px',
+        color: '#ff4757',
+        fontFamily: 'Orbitron',
+        fontStyle: 'bold',
+        stroke: '#c44569',
+        strokeThickness: 4
       }
     )
     gameOverText.setOrigin(0.5)
@@ -192,9 +232,12 @@ export class GameScene extends Phaser.Scene {
       this.cameras.main.centerY + 10,
       `Final Score: ${this.score}`,
       {
-        fontSize: '32px',
-        color: '#ffffff',
-        fontFamily: 'Orbitron'
+        fontSize: '36px',
+        color: '#22d3ee',
+        fontFamily: 'Orbitron',
+        fontStyle: 'bold',
+        stroke: '#0891b2',
+        strokeThickness: 2
       }
     )
     finalScoreText.setOrigin(0.5)
@@ -202,15 +245,26 @@ export class GameScene extends Phaser.Scene {
     // Restart instruction
     const restartText = this.add.text(
       this.cameras.main.centerX,
-      this.cameras.main.centerY + 60,
+      this.cameras.main.centerY + 70,
       'Press R to Restart',
       {
-        fontSize: '20px',
-        color: '#00ff00',
-        fontFamily: 'Orbitron'
+        fontSize: '24px',
+        color: '#4fd1c7',
+        fontFamily: 'Orbitron',
+        stroke: '#0f766e',
+        strokeThickness: 2
       }
     )
     restartText.setOrigin(0.5)
+    
+    // Pulsing animation for restart text
+    this.tweens.add({
+      targets: restartText,
+      alpha: 0.5,
+      duration: 1000,
+      yoyo: true,
+      repeat: -1
+    })
     
     // Add restart functionality
     const rKey = this.input.keyboard!.addKey(Phaser.Input.Keyboard.KeyCodes.R)

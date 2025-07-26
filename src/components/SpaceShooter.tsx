@@ -58,20 +58,20 @@ const SpaceShooter: React.FC<SpaceShooterProps> = ({
   }, [gameWidth, gameHeight])
 
   return (
-    <div className="flex flex-col items-center justify-center min-h-screen bg-background p-4">
+    <div className="flex flex-col items-center justify-center min-h-screen bg-gradient-to-b from-background to-muted p-4">
       <div className="mb-6 text-center">
-        <h1 className="game-title text-4xl md:text-6xl text-primary mb-2">
+        <h1 className="game-title text-4xl md:text-6xl text-primary mb-2 animate-pulse">
           SPACE SHOOTER
         </h1>
-        <p className="text-muted-foreground">
+        <p className="text-muted-foreground text-lg">
           Defend Earth from alien invaders!
         </p>
       </div>
 
-      <Card className="p-4 mb-4">
+      <Card className="p-6 mb-4 bg-card/80 backdrop-blur-sm border-2 border-primary/30 shadow-2xl shadow-primary/20">
         <div 
           ref={gameRef}
-          className="border-2 border-primary/50 rounded-lg shadow-2xl bg-black"
+          className="border-2 border-primary/50 rounded-xl shadow-2xl bg-black overflow-hidden"
           style={{ 
             maxWidth: '100%',
             maxHeight: '70vh'
@@ -81,17 +81,17 @@ const SpaceShooter: React.FC<SpaceShooterProps> = ({
 
       {/* Mobile Touch Controls */}
       {isMobile && (
-        <Card className="p-4 w-full max-w-md">
-          <h3 className="game-ui text-lg mb-3 text-center">Touch Controls</h3>
+        <Card className="p-4 w-full max-w-md bg-card/80 backdrop-blur-sm border border-primary/30">
+          <h3 className="game-ui text-lg mb-3 text-center text-accent">Touch Controls</h3>
           <div className="grid grid-cols-3 gap-2 mb-4">
             <div></div>
-            <Button variant="outline" size="lg" disabled>↑</Button>
+            <Button variant="outline" size="lg" disabled className="border-primary/30 text-primary">↑</Button>
             <div></div>
-            <Button variant="outline" size="lg" disabled>←</Button>
-            <Button variant="outline" size="lg" disabled>↓</Button>
-            <Button variant="outline" size="lg" disabled>→</Button>
+            <Button variant="outline" size="lg" disabled className="border-primary/30 text-primary">←</Button>
+            <Button variant="outline" size="lg" disabled className="border-primary/30 text-primary">↓</Button>
+            <Button variant="outline" size="lg" disabled className="border-primary/30 text-primary">→</Button>
           </div>
-          <Button className="w-full" size="lg" variant="default" disabled>
+          <Button className="w-full bg-accent hover:bg-accent/80" size="lg" variant="default" disabled>
             🚀 FIRE
           </Button>
           <p className="text-xs text-center text-muted-foreground mt-2">
@@ -102,13 +102,15 @@ const SpaceShooter: React.FC<SpaceShooterProps> = ({
 
       {/* Instructions */}
       <div className="mt-4 text-center max-w-md">
-        <div className="space-y-2 text-sm text-muted-foreground">
-          <p>🎮 <strong>Controls:</strong></p>
-          <p>Arrow Keys or WASD to move</p>
-          <p>SPACE to shoot • ENTER to start • R to restart</p>
-          <p>🎯 Destroy enemies to earn points!</p>
-          <p>💚 You have 3 lives - don't let enemies hit you!</p>
-        </div>
+        <Card className="p-4 bg-card/60 backdrop-blur-sm border border-primary/20">
+          <div className="space-y-2 text-sm text-foreground">
+            <p className="text-accent font-semibold">🎮 Controls</p>
+            <p>Arrow Keys or WASD to move</p>
+            <p>SPACE to shoot • ENTER to start • R to restart</p>
+            <p>🎯 Destroy enemies to earn points!</p>
+            <p>💚 You have 3 lives - don't let enemies hit you!</p>
+          </div>
+        </Card>
       </div>
     </div>
   )

@@ -8,30 +8,30 @@
 }
 
 :root {
-  --background: oklch(0.15 0.1 240);
-  --foreground: oklch(0.95 0 0);
+  --background: oklch(0.08 0.15 240);
+  --foreground: oklch(0.95 0.05 200);
 
-  --card: oklch(0.2 0.08 240);
-  --card-foreground: oklch(0.95 0 0);
-  --popover: oklch(0.2 0.08 240);
-  --popover-foreground: oklch(0.95 0 0);
+  --card: oklch(0.12 0.12 240);
+  --card-foreground: oklch(0.95 0.05 200);
+  --popover: oklch(0.12 0.12 240);
+  --popover-foreground: oklch(0.95 0.05 200);
 
-  --primary: oklch(0.7 0.15 120);
-  --primary-foreground: oklch(0.1 0 0);
-  --secondary: oklch(0.6 0.2 200);
-  --secondary-foreground: oklch(0.95 0 0);
+  --primary: oklch(0.7 0.15 195);
+  --primary-foreground: oklch(0.1 0.05 240);
+  --secondary: oklch(0.6 0.2 25);
+  --secondary-foreground: oklch(0.95 0.05 200);
   --accent: oklch(0.75 0.2 40);
-  --accent-foreground: oklch(0.1 0 0);
+  --accent-foreground: oklch(0.1 0.05 240);
   --destructive: oklch(0.65 0.25 20);
-  --destructive-foreground: oklch(0.95 0 0);
+  --destructive-foreground: oklch(0.95 0.05 200);
 
-  --muted: oklch(0.25 0.05 240);
-  --muted-foreground: oklch(0.7 0 0);
-  --border: oklch(0.3 0.05 240);
-  --input: oklch(0.3 0.05 240);
-  --ring: oklch(0.7 0.15 120);
+  --muted: oklch(0.15 0.08 240);
+  --muted-foreground: oklch(0.7 0.05 200);
+  --border: oklch(0.25 0.08 240);
+  --input: oklch(0.25 0.08 240);
+  --ring: oklch(0.7 0.15 195);
 
-  --radius: 0.5rem;
+  --radius: 0.75rem;
 }
 
 @theme {
@@ -67,11 +67,17 @@
 body {
   font-family: 'Inter', sans-serif;
   overflow: hidden;
+  background: linear-gradient(135deg, oklch(0.08 0.15 240), oklch(0.05 0.2 260));
 }
 
 .game-title {
   font-family: 'Orbitron', monospace;
   font-weight: 900;
+  background: linear-gradient(135deg, oklch(0.7 0.15 195), oklch(0.8 0.2 220));
+  background-clip: text;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  text-shadow: 0 0 30px oklch(0.7 0.15 195 / 0.5);
 }
 
 .game-ui {
@@ -82,4 +88,19 @@ body {
 .game-score {
   font-family: 'Orbitron', monospace;
   font-weight: 400;
+}
+
+/* Add glow effects for cards */
+.backdrop-blur-sm {
+  backdrop-filter: blur(8px);
+}
+
+/* Enhanced button animations */
+@keyframes pulse-glow {
+  0%, 100% { box-shadow: 0 0 10px oklch(0.7 0.15 195 / 0.3); }
+  50% { box-shadow: 0 0 20px oklch(0.7 0.15 195 / 0.6); }
+}
+
+.animate-pulse {
+  animation: pulse-glow 2s ease-in-out infinite;
 }
