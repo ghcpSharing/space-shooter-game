@@ -13,40 +13,77 @@ export class ParticleEffects {
     })
   }
 
-  static createExplosion(scene: Phaser.Scene, x: number, y: number, color: string = '#ff6b35'): void {
+  static createExplosion(scene: Phaser.Scene, x: number, y: number, color: string = '#ff6b35', scale: number = 1.0): void {
     // Main explosion burst
     const explosion = scene.add.particles(x, y, 'star', {
-      speed: { min: 100, max: 250 },
-      scale: { start: 1, end: 0 },
+      speed: { min: 100 * scale, max: 250 * scale },
+      scale: { start: 1 * scale, end: 0 },
       tint: Phaser.Display.Color.HexStringToColor(color).color,
-      lifespan: 500,
-      quantity: 15
+      lifespan: 500 * scale,
+      quantity: Math.floor(15 * scale)
     })
 
     // Secondary smaller particles
     const sparks = scene.add.particles(x, y, 'star', {
-      speed: { min: 50, max: 150 },
-      scale: { start: 0.5, end: 0 },
+      speed: { min: 50 * scale, max: 150 * scale },
+      scale: { start: 0.5 * scale, end: 0 },
       tint: 0xffffff,
-      lifespan: 300,
-      quantity: 8
+      lifespan: 300 * scale,
+      quantity: Math.floor(8 * scale)
     })
 
     // Ring expansion effect
-    const ring = scene.add.circle(x, y, 5, Phaser.Display.Color.HexStringToColor(color).color, 0)
-    ring.setStrokeStyle(3, Phaser.Display.Color.HexStringToColor(color).color)
+    const ring = scene.add.circle(x, y, 5 * scale, Phaser.Display.Color.HexStringToColor(color).color, 0)
+    ring.setStrokeStyle(3 * scale, Phaser.Display.Color.HexStringToColor(color).color)
     
     scene.tweens.add({
       targets: ring,
-      radius: 40,
+      radius: 40 * scale,
       alpha: 0,
-      duration: 400,
+      duration: 400 * scale,
       ease: 'Power2',
       onComplete: () => ring.destroy()
     })
 
+    // Additional effects for larger explosions (bosses)
+    if (scale > 1.5) {
+      // Multiple ring waves
+      for (let i = 1; i <= 3; i++) {
+        scene.time.delayedCall(i * 150, () => {
+          const waveRing = scene.add.circle(x, y, 5, Phaser.Display.Color.HexStringToColor(color).color, 0)
+          waveRing.setStrokeStyle(2, 0xffffff)
+          
+          scene.tweens.add({
+            targets: waveRing,
+            radius: 60 * scale,
+            alpha: 0,
+            duration: 600,
+            ease: 'Power2',
+            onComplete: () => waveRing.destroy()
+          })
+        })
+      }
+
+      // Screen flash for massive explosions
+      const flash = scene.add.rectangle(
+        scene.cameras.main.centerX,
+        scene.cameras.main.centerY,
+        scene.cameras.main.width,
+        scene.cameras.main.height,
+        0xffffff,
+        0.3
+      )
+      
+      scene.tweens.add({
+        targets: flash,
+        alpha: 0,
+        duration: 200,
+        onComplete: () => flash.destroy()
+      })
+    }
+
     // Cleanup particles
-    scene.time.delayedCall(600, () => {
+    scene.time.delayedCall(600 * scale, () => {
       explosion.destroy()
       sparks.destroy()
     })

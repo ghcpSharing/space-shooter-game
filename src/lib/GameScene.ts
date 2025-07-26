@@ -1,6 +1,7 @@
 import * as Phaser from 'phaser'
-import { Player, Enemy, Bullet } from '../lib/gameObjects'
+import { Player, Enemy, Bullet, Boss } from '../lib/gameObjects'
 import { ParticleEffects } from '../lib/ParticleEffects'
+import { LevelManager } from '../lib/LevelManager'
 import playerShipSvg from '../assets/images/player-ship.svg'
 import enemyShipSvg from '../assets/images/enemy-ship.svg'
 import playerBulletSvg from '../assets/images/player-bullet.svg'
@@ -11,17 +12,18 @@ export class GameScene extends Phaser.Scene {
   private player!: Player
   private bullets!: Phaser.GameObjects.Group
   private enemies!: Phaser.GameObjects.Group
+  private bosses!: Phaser.GameObjects.Group
+  private enemyBullets!: Phaser.GameObjects.Group
   private score: number = 0
   private scoreText!: Phaser.GameObjects.Text
   private lives: number = 3
   private livesText!: Phaser.GameObjects.Text
   private gameOver: boolean = false
   private spaceKey!: Phaser.Input.Keyboard.Key
-  private enemySpawnTimer: number = 0
-  private enemySpawnDelay: number = 1000
   private explosions!: Phaser.GameObjects.Group
   private background!: Phaser.GameObjects.Image
   private stars!: Phaser.GameObjects.Group
+  private levelManager!: LevelManager
 
   constructor() {
     super({ key: 'GameScene' })
@@ -56,6 +58,8 @@ export class GameScene extends Phaser.Scene {
     // Create groups
     this.bullets = this.add.group()
     this.enemies = this.add.group()
+    this.bosses = this.add.group()
+    this.enemyBullets = this.add.group()
     this.explosions = this.add.group()
 
     // Input
@@ -80,9 +84,28 @@ export class GameScene extends Phaser.Scene {
       strokeThickness: 2
     })
 
-    // Collisions
+    // Initialize level manager
+    this.levelManager = new LevelManager(this)
+
+    // Enhanced collision system
+    this.setupCollisions()
+  }
+
+  private setupCollisions() {
+    // Player bullets vs enemies
     this.physics.add.overlap(this.bullets, this.enemies, this.bulletHitEnemy, undefined, this)
+    
+    // Player bullets vs bosses
+    this.physics.add.overlap(this.bullets, this.bosses, this.bulletHitBoss, undefined, this)
+    
+    // Player vs enemies
     this.physics.add.overlap(this.player, this.enemies, this.playerHitEnemy, undefined, this)
+    
+    // Player vs bosses
+    this.physics.add.overlap(this.player, this.bosses, this.playerHitBoss, undefined, this)
+    
+    // Player vs enemy bullets
+    this.physics.add.overlap(this.player, this.enemyBullets, this.playerHitEnemyBullet, undefined, this)
   }
 
   update(time: number, delta: number) {
@@ -90,6 +113,9 @@ export class GameScene extends Phaser.Scene {
 
     // Animate background
     this.animateBackground()
+
+    // Update level manager
+    this.levelManager.update(time, delta)
 
     // Update player
     this.player.update(time)
@@ -105,22 +131,28 @@ export class GameScene extends Phaser.Scene {
       (bullet as Bullet).update()
     })
 
+    this.enemyBullets.children.entries.forEach((bullet) => {
+      (bullet as Bullet).update()
+    })
+
     // Update enemies
     this.enemies.children.entries.forEach((enemy) => {
       (enemy as Enemy).update()
     })
 
-    // Spawn enemies
-    this.enemySpawnTimer += delta
-    if (this.enemySpawnTimer > this.enemySpawnDelay) {
-      this.spawnEnemy()
-      this.enemySpawnTimer = 0
+    // Update bosses and their bullet groups
+    this.bosses.children.entries.forEach((boss) => {
+      const bossObj = boss as Boss
+      bossObj.update(time)
       
-      // Increase difficulty over time
-      if (this.enemySpawnDelay > 300) {
-        this.enemySpawnDelay -= 5
-      }
-    }
+      // Add boss bullets to the enemy bullets group for collision detection
+      const bossBullets = bossObj.getBullets()
+      bossBullets.children.entries.forEach((bullet) => {
+        if (!this.enemyBullets.contains(bullet)) {
+          this.enemyBullets.add(bullet)
+        }
+      })
+    })
   }
 
   private createAnimatedStars() {
@@ -147,58 +179,116 @@ export class GameScene extends Phaser.Scene {
     this.bullets.add(bullet)
   }
 
-  private spawnEnemy() {
-    const x = Phaser.Math.Between(50, this.cameras.main.width - 50)
-    const speed = Phaser.Math.Between(100, 200)
-    const enemy = new Enemy(this, x, -50, speed)
-    enemy.setScale(0.7)
-    this.enemies.add(enemy)
+  private bulletHitEnemy(bullet: Phaser.GameObjects.GameObject, enemy: Phaser.GameObjects.GameObject) {
+    const enemyObj = enemy as Enemy
+    const destroyed = enemyObj.takeDamage(1)
+    
+    if (destroyed) {
+      // Create enhanced explosion effect
+      this.createExplosion(enemy.x, enemy.y, '#ff6b35')
+      
+      // Screen shake for impact
+      this.cameras.main.shake(100, 0.01)
+      
+      // Update score with level multiplier
+      const basePoints = enemyObj.getPoints()
+      const bonusPoints = Math.floor(basePoints * this.levelManager.getLevelMultiplier())
+      this.addScore(bonusPoints)
+      
+      // Remove enemy
+      enemy.destroy()
+    }
+    
+    // Always destroy bullet
+    bullet.destroy()
   }
 
-  private bulletHitEnemy(bullet: Phaser.GameObjects.GameObject, enemy: Phaser.GameObjects.GameObject) {
-    // Create enhanced explosion effect
-    this.createExplosion(enemy.x, enemy.y, '#ff6b35')
+  private bulletHitBoss(bullet: Phaser.GameObjects.GameObject, boss: Phaser.GameObjects.GameObject) {
+    const bossObj = boss as Boss
+    const destroyed = bossObj.takeDamage(1)
     
-    // Screen shake for impact
-    this.cameras.main.shake(100, 0.01)
+    if (destroyed) {
+      // Create massive explosion effect
+      this.createExplosion(boss.x, boss.y, '#ff6b35', 2.0)
+      
+      // Strong screen shake for boss destruction
+      this.cameras.main.shake(300, 0.03)
+      
+      // Massive score bonus for boss
+      const basePoints = bossObj.getPoints()
+      const bonusPoints = Math.floor(basePoints * this.levelManager.getLevelMultiplier())
+      this.addScore(bonusPoints)
+      
+      // Notify level manager
+      this.levelManager.onBossDestroyed()
+      
+      // Remove boss
+      boss.destroy()
+    } else {
+      // Smaller impact effect for boss hit
+      this.createExplosion(boss.x, boss.y, '#ffffff', 0.5)
+      this.cameras.main.shake(50, 0.005)
+    }
     
-    // Destroy objects
+    // Always destroy bullet
     bullet.destroy()
-    enemy.destroy()
-    
-    // Update score
-    this.score += 10
-    this.scoreText.setText('Score: ' + this.score)
-    
-    // Store high score
-    this.storeHighScore()
   }
 
   private playerHitEnemy(player: Phaser.GameObjects.GameObject, enemy: Phaser.GameObjects.GameObject) {
-    // Create explosion effect
-    this.createExplosion(enemy.x, enemy.y, '#ff4757')
+    this.playerTakeDamage(enemy.x, enemy.y)
+    enemy.destroy()
+  }
+
+  private playerHitBoss(player: Phaser.GameObjects.GameObject, boss: Phaser.GameObjects.GameObject) {
+    this.playerTakeDamage(boss.x, boss.y)
+    // Boss doesn't get destroyed by collision
+  }
+
+  private playerHitEnemyBullet(player: Phaser.GameObjects.GameObject, bullet: Phaser.GameObjects.GameObject) {
+    this.playerTakeDamage(bullet.x, bullet.y)
+    bullet.destroy()
+  }
+
+  private playerTakeDamage(impactX: number, impactY: number) {
+    // Create explosion effect at impact point
+    this.createExplosion(impactX, impactY, '#ff4757')
     
     // Strong screen shake for player hit
     this.cameras.main.shake(200, 0.02)
     
-    // Destroy enemy
-    enemy.destroy()
-    
     // Lose a life
     this.lives--
     this.livesText.setText('Lives: ' + this.lives)
+    
+    // Brief invulnerability
+    this.player.setAlpha(0.5)
+    this.scene.tweens.add({
+      targets: this.player,
+      alpha: 1,
+      duration: 1000,
+      ease: 'Power2'
+    })
     
     if (this.lives <= 0) {
       this.endGame()
     }
   }
 
-  private createExplosion(x: number, y: number, color: string = '#ff6b35') {
-    ParticleEffects.createExplosion(this, x, y, color)
+  public addScore(points: number) {
+    this.score += points
+    this.scoreText.setText('Score: ' + this.score)
+    this.storeHighScore()
+  }
+
+  private createExplosion(x: number, y: number, color: string = '#ff6b35', scale: number = 1.0) {
+    ParticleEffects.createExplosion(this, x, y, color, scale)
   }
 
   private endGame() {
     this.gameOver = true
+    
+    // Clean up level manager
+    this.levelManager.destroy()
     
     // Create overlay
     const overlay = this.add.rectangle(
@@ -213,7 +303,7 @@ export class GameScene extends Phaser.Scene {
     // Game over text with glow effect
     const gameOverText = this.add.text(
       this.cameras.main.centerX,
-      this.cameras.main.centerY - 60,
+      this.cameras.main.centerY - 80,
       'GAME OVER',
       {
         fontSize: '56px',
@@ -226,10 +316,25 @@ export class GameScene extends Phaser.Scene {
     )
     gameOverText.setOrigin(0.5)
     
+    // Level reached
+    const levelText = this.add.text(
+      this.cameras.main.centerX,
+      this.cameras.main.centerY - 30,
+      `Level Reached: ${this.levelManager.getCurrentLevel()}`,
+      {
+        fontSize: '28px',
+        color: '#ffa502',
+        fontFamily: 'Orbitron',
+        stroke: '#000000',
+        strokeThickness: 2
+      }
+    )
+    levelText.setOrigin(0.5)
+    
     // Final score
     const finalScoreText = this.add.text(
       this.cameras.main.centerX,
-      this.cameras.main.centerY + 10,
+      this.cameras.main.centerY + 20,
       `Final Score: ${this.score}`,
       {
         fontSize: '36px',
@@ -245,7 +350,7 @@ export class GameScene extends Phaser.Scene {
     // Restart instruction
     const restartText = this.add.text(
       this.cameras.main.centerX,
-      this.cameras.main.centerY + 70,
+      this.cameras.main.centerY + 80,
       'Press R to Restart',
       {
         fontSize: '24px',
