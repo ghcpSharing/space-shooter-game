@@ -1,5 +1,7 @@
+import SpaceShooter from './components/SpaceShooter'
+
 function App() {
-    return <div></div>
+  return <SpaceShooter />
 }
 
 export default App
