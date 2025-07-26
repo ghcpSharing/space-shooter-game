@@ -109,7 +109,7 @@ const SpaceShooter: React.FC<SpaceShooterProps> = ({
             <p>SPACE to shoot • ENTER to start • R to restart</p>
             <p className="text-accent font-semibold">⚔️ Level Progression</p>
             <p>🎯 Clear waves of enemies to advance levels</p>
-            <p>👹 Face powerful bosses every 5th level</p>
+            <p>👹 Face powerful bosses every 3rd level</p>
             <p>📈 Higher levels = stronger enemies & better rewards</p>
             <p>💚 You have 3 lives - survive the cosmic assault!</p>
           </div>

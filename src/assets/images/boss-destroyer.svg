@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="120" height="120" viewBox="0 0 120 120" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="destroyerGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#ff6b6b;stop-opacity:1" />
+      <stop offset="50%" style="stop-color:#ff3838;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#cc1e1e;stop-opacity:1" />
+    </linearGradient>
+    <filter id="glow">
+      <feGaussianBlur stdDeviation="3" result="coloredBlur"/>
+      <feMerge> 
+        <feMergeNode in="coloredBlur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+  </defs>
+  
+  <!-- Main body -->
+  <polygon points="60,20 80,40 85,70 75,90 45,90 35,70 40,40" fill="url(#destroyerGrad)" stroke="#ffffff" stroke-width="2" filter="url(#glow)"/>
+  
+  <!-- Side wings -->
+  <polygon points="25,45 40,40 40,70 25,75" fill="url(#destroyerGrad)" stroke="#ffffff" stroke-width="1"/>
+  <polygon points="95,45 80,40 80,70 95,75" fill="url(#destroyerGrad)" stroke="#ffffff" stroke-width="1"/>
+  
+  <!-- Weapon pods -->
+  <rect x="35" y="35" width="8" height="15" fill="#ff9999" stroke="#ffffff" stroke-width="1"/>
+  <rect x="77" y="35" width="8" height="15" fill="#ff9999" stroke="#ffffff" stroke-width="1"/>
+  
+  <!-- Engine trails -->
+  <circle cx="50" cy="85" r="4" fill="#ffaa00" opacity="0.8"/>
+  <circle cx="70" cy="85" r="4" fill="#ffaa00" opacity="0.8"/>
+  
+  <!-- Bridge -->
+  <polygon points="60,25 65,30 65,40 55,40 55,30" fill="#ffcccc" stroke="#ffffff" stroke-width="1"/>
+</svg>

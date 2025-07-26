@@ -71,7 +71,7 @@ export class LevelManager {
   }
 
   private generateLevelConfig(levelNumber: number): LevelConfig {
-    const isBossLevel = levelNumber % 5 === 0
+    const isBossLevel = levelNumber % 3 === 0 // Changed from 5 to 3 so bosses appear more frequently
     
     if (isBossLevel) {
       return this.createBossLevel(levelNumber)
@@ -111,17 +111,17 @@ export class LevelManager {
 
   private createBossLevel(levelNumber: number): LevelConfig {
     const bossTypes = ['destroyer', 'interceptor', 'mothership', 'voidcommander']
-    const bossIndex = Math.min(Math.floor((levelNumber - 5) / 5), bossTypes.length - 1)
+    const bossIndex = Math.min(Math.floor((levelNumber - 3) / 3), bossTypes.length - 1) // Adjusted for new frequency
     const bossType = bossTypes[bossIndex]
 
-    // Add some regular enemies before the boss
+    // Reduced pre-boss waves to get to boss faster
     const preBossWaves: EnemyWave[] = [
       {
         enemyType: 'fighter',
-        count: Math.min(5 + levelNumber, 15),
-        spawnDelay: 600,
-        enemyHealth: Math.min(2 + Math.floor(levelNumber / 5), 6),
-        enemySpeed: 150 + (levelNumber * 5)
+        count: Math.min(3 + Math.floor(levelNumber / 2), 8), // Reduced enemy count
+        spawnDelay: 800, // Faster spawn
+        enemyHealth: Math.min(1 + Math.floor(levelNumber / 3), 4),
+        enemySpeed: 150 + (levelNumber * 3)
       }
     ]
 

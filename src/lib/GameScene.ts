@@ -7,6 +7,10 @@ import enemyShipSvg from '../assets/images/enemy-ship.svg'
 import playerBulletSvg from '../assets/images/player-bullet.svg'
 import enemyBulletSvg from '../assets/images/enemy-bullet.svg'
 import spaceBackgroundSvg from '../assets/images/space-background.svg'
+import bossDestroyerSvg from '../assets/images/boss-destroyer.svg'
+import bossInterceptorSvg from '../assets/images/boss-interceptor.svg'
+import bossMothershipSvg from '../assets/images/boss-mothership.svg'
+import bossVoidCommanderSvg from '../assets/images/boss-voidcommander.svg'
 
 export class GameScene extends Phaser.Scene {
   private player!: Player
@@ -36,6 +40,12 @@ export class GameScene extends Phaser.Scene {
     this.load.image('playerBullet', playerBulletSvg)
     this.load.image('enemyBullet', enemyBulletSvg)
     this.load.image('spaceBackground', spaceBackgroundSvg)
+    
+    // Load boss sprites
+    this.load.image('bossDestroyer', bossDestroyerSvg)
+    this.load.image('bossInterceptor', bossInterceptorSvg)
+    this.load.image('bossMothership', bossMothershipSvg)
+    this.load.image('bossVoidcommander', bossVoidCommanderSvg)
     
     // Create simple star texture for particles
     this.load.image('star', 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAQAAAAECAYAAACp8Z5+AAAAG0lEQVQIHWP8//8/AzYwiklkAQDiAwMDA+MjAAQBABAJ8FsAAAAASUVORK5CYII=')
@@ -208,11 +218,28 @@ export class GameScene extends Phaser.Scene {
     const destroyed = bossObj.takeDamage(1)
     
     if (destroyed) {
-      // Create massive explosion effect
-      this.createExplosion(boss.x, boss.y, '#ff6b35', 2.0)
+      // Create massive explosion effect with boss-specific colors
+      let explosionColor = '#ff6b35'
+      const bossType = (bossObj as any).bossType
+      switch (bossType) {
+        case 'destroyer':
+          explosionColor = '#ff6b6b'
+          break
+        case 'interceptor':
+          explosionColor = '#4dabf7'
+          break
+        case 'mothership':
+          explosionColor = '#51cf66'
+          break
+        case 'voidcommander':
+          explosionColor = '#ff38ff'
+          break
+      }
       
-      // Strong screen shake for boss destruction
-      this.cameras.main.shake(300, 0.03)
+      this.createExplosion(boss.x, boss.y, explosionColor, 3.0) // Much larger explosion
+      
+      // Massive screen shake for boss destruction
+      this.cameras.main.shake(500, 0.05)
       
       // Massive score bonus for boss
       const basePoints = bossObj.getPoints()

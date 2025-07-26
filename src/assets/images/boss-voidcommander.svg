@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="140" height="140" viewBox="0 0 140 140" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <radialGradient id="voidGrad" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" style="stop-color:#ffffff;stop-opacity:1" />
+      <stop offset="30%" style="stop-color:#ff38ff;stop-opacity:1" />
+      <stop offset="70%" style="stop-color:#8838ff;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#1a0033;stop-opacity:1" />
+    </radialGradient>
+    <filter id="voidGlow">
+      <feGaussianBlur stdDeviation="5" result="coloredBlur"/>
+      <feMerge> 
+        <feMergeNode in="coloredBlur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+  </defs>
+  
+  <!-- Outer void ring -->
+  <circle cx="70" cy="70" r="50" fill="none" stroke="url(#voidGrad)" stroke-width="8" filter="url(#voidGlow)" opacity="0.8"/>
+  
+  <!-- Main void commander body -->
+  <polygon points="70,30 85,45 85,65 75,85 65,85 55,65 55,45" fill="url(#voidGrad)" stroke="#ffffff" stroke-width="3" filter="url(#voidGlow)"/>
+  
+  <!-- Void tendrils -->
+  <path d="M 35 35 Q 50 50 45 70 Q 40 85 25 90" stroke="#ff38ff" stroke-width="4" fill="none" opacity="0.7"/>
+  <path d="M 105 35 Q 90 50 95 70 Q 100 85 115 90" stroke="#ff38ff" stroke-width="4" fill="none" opacity="0.7"/>
+  <path d="M 35 105 Q 50 90 45 70 Q 40 55 25 50" stroke="#ff38ff" stroke-width="4" fill="none" opacity="0.7"/>
+  <path d="M 105 105 Q 90 90 95 70 Q 100 55 115 50" stroke="#ff38ff" stroke-width="4" fill="none" opacity="0.7"/>
+  
+  <!-- Void core -->
+  <circle cx="70" cy="70" r="15" fill="#000000" stroke="#ff38ff" stroke-width="3"/>
+  <circle cx="70" cy="70" r="8" fill="#ff38ff" opacity="0.6"/>
+  <circle cx="70" cy="70" r="3" fill="#ffffff"/>
+  
+  <!-- Energy weapons -->
+  <rect x="50" y="40" width="6" height="20" fill="#ffaaff" stroke="#ffffff" stroke-width="1" transform="rotate(-30 53 50)"/>
+  <rect x="84" y="40" width="6" height="20" fill="#ffaaff" stroke="#ffffff" stroke-width="1" transform="rotate(30 87 50)"/>
+  
+  <!-- Void shields -->
+  <circle cx="70" cy="70" r="35" fill="none" stroke="#8838ff" stroke-width="2" stroke-dasharray="10,5" opacity="0.5"/>
+  <circle cx="70" cy="70" r="25" fill="none" stroke="#ff38ff" stroke-width="1" stroke-dasharray="5,3" opacity="0.6"/>
+</svg>

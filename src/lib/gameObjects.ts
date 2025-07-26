@@ -174,7 +174,9 @@ export class Boss extends Phaser.GameObjects.Sprite {
   private bullets!: Phaser.GameObjects.Group
 
   constructor(scene: Phaser.Scene, x: number, y: number, bossType: string = 'destroyer') {
-    super(scene, x, y, 'enemy')
+    // Get the appropriate sprite texture based on boss type
+    const spriteKey = `boss${bossType.charAt(0).toUpperCase() + bossType.slice(1)}`
+    super(scene, x, y, spriteKey)
     scene.add.existing(this)
     scene.physics.add.existing(this)
     
@@ -222,24 +224,20 @@ export class Boss extends Phaser.GameObjects.Sprite {
   private setBossVisuals() {
     switch (this.bossType) {
       case 'destroyer':
-        this.setTint(0xff3838)
-        this.setScale(2.0)
+        this.setScale(1.5)
         break
       case 'interceptor':
-        this.setTint(0x3838ff)
-        this.setScale(1.8)
+        this.setScale(1.3)
         break
       case 'mothership':
-        this.setTint(0x38ff38)
-        this.setScale(2.5)
+        this.setScale(1.8)
         break
       case 'voidcommander':
-        this.setTint(0xff38ff)
-        this.setScale(2.2)
+        this.setScale(1.4)
         break
     }
     
-    // Boss glow effect
+    // Boss glow effect - no tint needed as sprites have their own colors
     this.setAlpha(0.9)
     this.scene.tweens.add({
       targets: this,
@@ -249,6 +247,15 @@ export class Boss extends Phaser.GameObjects.Sprite {
       repeat: -1,
       ease: 'Sine.easeInOut'
     })
+    
+    // Add subtle rotation for dramatic effect
+    this.scene.tweens.add({
+      targets: this,
+      rotation: Math.PI * 2,
+      duration: 8000,
+      repeat: -1,
+      ease: 'Linear'
+    })
   }
 
   private createHealthBar() {
@@ -257,46 +264,107 @@ export class Boss extends Phaser.GameObjects.Sprite {
   }
 
   private updateHealthBar() {
-    const barWidth = 300
-    const barHeight = 20
+    const barWidth = 350
+    const barHeight = 25
     const x = this.scene.cameras.main.centerX - barWidth / 2
-    const y = 50
+    const y = 40
     
     this.healthBar.clear()
     
-    // Background
-    this.healthBar.fillStyle(0x000000, 0.8)
+    // Background with glow
+    this.healthBar.fillStyle(0x000000, 0.9)
+    this.healthBar.fillRect(x - 4, y - 4, barWidth + 8, barHeight + 8)
+    this.healthBar.fillStyle(0x333333, 0.7)
     this.healthBar.fillRect(x - 2, y - 2, barWidth + 4, barHeight + 4)
     
-    // Health bar
+    // Health bar with gradient effect
     const healthPercent = this.health / this.maxHealth
-    const healthColor = healthPercent > 0.6 ? 0x00ff00 : healthPercent > 0.3 ? 0xffff00 : 0xff0000
+    let healthColor = 0x00ff00
+    let glowColor = 0x00ff00
     
-    this.healthBar.fillStyle(healthColor)
-    this.healthBar.fillRect(x, y, barWidth * healthPercent, barHeight)
+    if (healthPercent <= 0.25) {
+      healthColor = 0xff0000
+      glowColor = 0xff4444
+    } else if (healthPercent <= 0.5) {
+      healthColor = 0xffaa00
+      glowColor = 0xffcc44
+    } else if (healthPercent <= 0.75) {
+      healthColor = 0xffff00
+      glowColor = 0xffff44
+    }
     
-    // Border
-    this.healthBar.lineStyle(2, 0xffffff)
+    // Animated health bar segments
+    const segmentCount = 20
+    const segmentWidth = (barWidth * healthPercent) / segmentCount
+    
+    for (let i = 0; i < segmentCount * healthPercent; i++) {
+      const segmentX = x + (i * (barWidth / segmentCount))
+      const alpha = 0.7 + (Math.sin(this.scene.time.now * 0.01 + i) * 0.3)
+      this.healthBar.fillStyle(healthColor, alpha)
+      this.healthBar.fillRect(segmentX, y, segmentWidth - 1, barHeight)
+    }
+    
+    // Border with glow
+    this.healthBar.lineStyle(3, glowColor, 0.8)
+    this.healthBar.strokeRect(x, y, barWidth, barHeight)
+    this.healthBar.lineStyle(1, 0xffffff)
     this.healthBar.strokeRect(x, y, barWidth, barHeight)
     
-    // Boss name
+    // Phase indicator
+    const phaseX = x + barWidth + 10
+    this.healthBar.fillStyle(0xffffff)
+    this.healthBar.fillRect(phaseX, y, 60, barHeight)
+    this.healthBar.fillStyle(0x000000)
+    
+    // Boss name and phase
     if (!this.scene.children.getByName('bossNameText')) {
       const nameText = this.scene.add.text(
         this.scene.cameras.main.centerX,
-        30,
+        20,
         this.getBossName(),
         {
-          fontSize: '24px',
+          fontSize: '28px',
           color: '#ff4757',
           fontFamily: 'Orbitron',
           fontStyle: 'bold',
           stroke: '#000000',
-          strokeThickness: 3
+          strokeThickness: 4
         }
       )
       nameText.setOrigin(0.5)
       nameText.setName('bossNameText')
+      
+      // Pulsing name effect
+      this.scene.tweens.add({
+        targets: nameText,
+        scaleX: 1.05,
+        scaleY: 1.05,
+        duration: 1000,
+        yoyo: true,
+        repeat: -1,
+        ease: 'Sine.easeInOut'
+      })
     }
+    
+    // Phase text
+    const existingPhaseText = this.scene.children.getByName('bossPhaseText')
+    if (existingPhaseText) {
+      existingPhaseText.destroy()
+    }
+    
+    const phaseText = this.scene.add.text(
+      phaseX + 30,
+      y + 12,
+      `P${this.phase}`,
+      {
+        fontSize: '16px',
+        color: '#ffffff',
+        fontFamily: 'Orbitron',
+        fontStyle: 'bold'
+      }
+    )
+    phaseText.setOrigin(0.5)
+    phaseText.setName('bossPhaseText')
   }
 
   private getBossName(): string {
@@ -312,21 +380,49 @@ export class Boss extends Phaser.GameObjects.Sprite {
   private createEntryAnimation() {
     this.isInvulnerable = true
     
-    // Entry animation
+    // Make boss invisible initially
+    this.setAlpha(0)
+    
+    // Dramatic entry sequence
+    this.scene.cameras.main.shake(800, 0.03)
+    this.scene.cameras.main.flash(1000, 128, 0, 128) // Dark purple flash
+    
+    // Scale up entry animation
+    this.setScale(0.1)
     this.scene.tweens.add({
       targets: this,
+      alpha: 1,
+      scaleX: this.getBaseScale(),
+      scaleY: this.getBaseScale(),
       y: 150,
-      duration: 2000,
-      ease: 'Power2',
+      duration: 2500,
+      ease: 'Back.easeOut',
       onComplete: () => {
         this.isInvulnerable = false
         const body = this.body as Phaser.Physics.Arcade.Body
         body.setVelocity(0, 0)
+        
+        // Add warning pulse after entry
+        this.scene.tweens.add({
+          targets: this,
+          scaleX: this.getBaseScale() * 1.1,
+          scaleY: this.getBaseScale() * 1.1,
+          duration: 500,
+          yoyo: true,
+          repeat: 2
+        })
       }
     })
-    
-    // Screen shake for dramatic entry
-    this.scene.cameras.main.shake(500, 0.02)
+  }
+  
+  private getBaseScale(): number {
+    switch (this.bossType) {
+      case 'destroyer': return 1.5
+      case 'interceptor': return 1.3
+      case 'mothership': return 1.8
+      case 'voidcommander': return 1.4
+      default: return 1.5
+    }
   }
 
   takeDamage(damage: number = 1): boolean {
@@ -335,10 +431,17 @@ export class Boss extends Phaser.GameObjects.Sprite {
     this.health -= damage
     this.updateHealthBar()
     
-    // Flash white when hit
-    this.setTint(0xffffff)
-    this.scene.time.delayedCall(100, () => {
-      this.setBossVisuals()
+    // Flash white when hit - don't use tint to preserve sprite colors
+    const originalAlpha = this.alpha
+    this.setAlpha(1)
+    this.scene.tweens.add({
+      targets: this,
+      alpha: 0.7,
+      duration: 50,
+      yoyo: true,
+      onComplete: () => {
+        this.setAlpha(originalAlpha)
+      }
     })
     
     // Check for phase transition
@@ -354,15 +457,57 @@ export class Boss extends Phaser.GameObjects.Sprite {
   private onPhaseChange() {
     // Brief invulnerability during phase change
     this.isInvulnerable = true
-    this.scene.time.delayedCall(1000, () => {
+    this.scene.time.delayedCall(1500, () => {
       this.isInvulnerable = false
     })
     
     // Visual effect for phase change
-    this.scene.cameras.main.flash(500, 255, 255, 255)
+    this.scene.cameras.main.flash(800, 255, 100, 100)
+    this.scene.cameras.main.shake(300, 0.02)
+    
+    // Boss transformation effect
+    this.scene.tweens.add({
+      targets: this,
+      scaleX: this.getBaseScale() * 1.3,
+      scaleY: this.getBaseScale() * 1.3,
+      alpha: 0.5,
+      duration: 400,
+      yoyo: true,
+      onComplete: () => {
+        this.setAlpha(0.9) // Return to normal alpha
+      }
+    })
+    
+    // Show phase change notification
+    const phaseText = this.scene.add.text(
+      this.scene.cameras.main.centerX,
+      this.scene.cameras.main.centerY,
+      `PHASE ${this.phase}!`,
+      {
+        fontSize: '48px',
+        color: '#ff4757',
+        fontFamily: 'Orbitron',
+        fontStyle: 'bold',
+        stroke: '#000000',
+        strokeThickness: 5
+      }
+    )
+    phaseText.setOrigin(0.5)
+    phaseText.setAlpha(0)
+    
+    this.scene.tweens.add({
+      targets: phaseText,
+      alpha: 1,
+      scaleX: 1.2,
+      scaleY: 1.2,
+      duration: 600,
+      ease: 'Back.easeOut',
+      yoyo: true,
+      onComplete: () => phaseText.destroy()
+    })
     
     // Increase attack speed
-    this.attackCooldown = Math.max(500, this.attackCooldown - 200)
+    this.attackCooldown = Math.max(400, this.attackCooldown - 300)
   }
 
   getPoints(): number {
@@ -439,6 +584,8 @@ export class Boss extends Phaser.GameObjects.Sprite {
     for (let i = 0; i < bulletCount; i++) {
       const angle = startAngle + (angleStep * i)
       const bullet = new Bullet(this.scene, this.x, this.y + 40, 'enemyBullet')
+      bullet.setScale(1.2)
+      bullet.setTint(0xff6b6b) // Red tint for destroyer bullets
       const speed = 200
       const body = bullet.body as Phaser.Physics.Arcade.Body
       body.setVelocity(Math.cos(angle) * speed, Math.sin(angle) * speed)
@@ -447,9 +594,13 @@ export class Boss extends Phaser.GameObjects.Sprite {
   }
 
   private rapidFireAttack() {
-    for (let i = 0; i < this.phase; i++) {
-      this.scene.time.delayedCall(i * 100, () => {
+    for (let i = 0; i < this.phase * 2; i++) {
+      this.scene.time.delayedCall(i * 80, () => {
         const bullet = new Bullet(this.scene, this.x, this.y + 40, 'enemyBullet')
+        bullet.setScale(0.8)
+        bullet.setTint(0x4dabf7) // Blue tint for interceptor bullets
+        const body = bullet.body as Phaser.Physics.Arcade.Body
+        body.setVelocity(0, 300) // Faster bullets
         this.bullets.add(bullet)
       })
     }
@@ -458,24 +609,50 @@ export class Boss extends Phaser.GameObjects.Sprite {
   private missileBarrageAttack() {
     const missileCount = 2 + this.phase
     for (let i = 0; i < missileCount; i++) {
-      this.scene.time.delayedCall(i * 200, () => {
-        const x = this.x + (i - missileCount/2) * 30
+      this.scene.time.delayedCall(i * 150, () => {
+        const x = this.x + (i - missileCount/2) * 40
         const bullet = new Bullet(this.scene, x, this.y + 40, 'enemyBullet')
-        bullet.setScale(1.5)
-        bullet.setTint(0xff6b35)
+        bullet.setScale(1.8, 1.2)
+        bullet.setTint(0x51cf66) // Green tint for mothership missiles
+        const body = bullet.body as Phaser.Physics.Arcade.Body
+        body.setVelocity(0, 250)
         this.bullets.add(bullet)
+        
+        // Add missile trail effect
+        this.scene.tweens.add({
+          targets: bullet,
+          scaleX: 1.5,
+          scaleY: 1.0,
+          duration: 200,
+          yoyo: true,
+          repeat: -1
+        })
       })
     }
   }
 
   private voidBeamAttack() {
-    // Create a wide beam effect
-    for (let i = -2; i <= 2; i++) {
-      const bullet = new Bullet(this.scene, this.x + i * 20, this.y + 40, 'enemyBullet')
-      bullet.setScale(2, 3)
-      bullet.setTint(0xff38ff)
+    // Create a wide beam effect with void energy
+    for (let i = -3; i <= 3; i++) {
+      const bullet = new Bullet(this.scene, this.x + i * 15, this.y + 40, 'enemyBullet')
+      bullet.setScale(1.5, 4)
+      bullet.setTint(0xff38ff) // Purple void energy
+      const body = bullet.body as Phaser.Physics.Arcade.Body
+      body.setVelocity(0, 200)
       this.bullets.add(bullet)
+      
+      // Add void energy pulsing effect
+      this.scene.tweens.add({
+        targets: bullet,
+        alpha: 0.6,
+        duration: 100,
+        yoyo: true,
+        repeat: -1
+      })
     }
+    
+    // Add screen shake for void beam
+    this.scene.cameras.main.shake(200, 0.01)
   }
 
   destroy() {
@@ -486,6 +663,11 @@ export class Boss extends Phaser.GameObjects.Sprite {
     const nameText = this.scene.children.getByName('bossNameText')
     if (nameText) {
       nameText.destroy()
+    }
+    
+    const phaseText = this.scene.children.getByName('bossPhaseText')
+    if (phaseText) {
+      phaseText.destroy()
     }
     
     super.destroy()

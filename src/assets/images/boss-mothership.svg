@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="160" height="120" viewBox="0 0 160 120" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="mothershipGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#51cf66;stop-opacity:1" />
+      <stop offset="50%" style="stop-color:#38ff38;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#1ecc1e;stop-opacity:1" />
+    </linearGradient>
+    <filter id="greenGlow">
+      <feGaussianBlur stdDeviation="4" result="coloredBlur"/>
+      <feMerge> 
+        <feMergeNode in="coloredBlur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+  </defs>
+  
+  <!-- Main mothership body -->
+  <ellipse cx="80" cy="60" rx="60" ry="35" fill="url(#mothershipGrad)" stroke="#ffffff" stroke-width="3" filter="url(#greenGlow)"/>
+  
+  <!-- Central command center -->
+  <ellipse cx="80" cy="45" rx="25" ry="15" fill="#99ffaa" stroke="#ffffff" stroke-width="2"/>
+  
+  <!-- Side weapon arrays -->
+  <rect x="25" y="50" width="15" height="8" fill="#66ff66" stroke="#ffffff" stroke-width="1"/>
+  <rect x="120" y="50" width="15" height="8" fill="#66ff66" stroke="#ffffff" stroke-width="1"/>
+  <rect x="25" y="62" width="15" height="8" fill="#66ff66" stroke="#ffffff" stroke-width="1"/>
+  <rect x="120" y="62" width="15" height="8" fill="#66ff66" stroke="#ffffff" stroke-width="1"/>
+  
+  <!-- Hangar bays -->
+  <rect x="55" y="70" width="20" height="12" fill="#004400" stroke="#ffffff" stroke-width="1"/>
+  <rect x="85" y="70" width="20" height="12" fill="#004400" stroke="#ffffff" stroke-width="1"/>
+  
+  <!-- Engine clusters -->
+  <circle cx="35" cy="85" r="6" fill="#ffaa00" opacity="0.8"/>
+  <circle cx="50" cy="90" r="5" fill="#ffaa00" opacity="0.8"/>
+  <circle cx="110" cy="90" r="5" fill="#ffaa00" opacity="0.8"/>
+  <circle cx="125" cy="85" r="6" fill="#ffaa00" opacity="0.8"/>
+  
+  <!-- Command bridge -->
+  <polygon points="80,30 90,35 85,50 75,50 70,35" fill="#ccffcc" stroke="#ffffff" stroke-width="1"/>
+  
+  <!-- Communications array -->
+  <line x1="80" y1="25" x2="80" y2="35" stroke="#ffffff" stroke-width="3"/>
+  <circle cx="80" cy="23" r="3" fill="#ffffff"/>
+</svg>

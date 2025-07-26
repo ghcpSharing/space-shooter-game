@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="140" height="100" viewBox="0 0 140 100" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="interceptorGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#4dabf7;stop-opacity:1" />
+      <stop offset="50%" style="stop-color:#3838ff;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#1e1ecc;stop-opacity:1" />
+    </linearGradient>
+    <filter id="blueGlow">
+      <feGaussianBlur stdDeviation="2" result="coloredBlur"/>
+      <feMerge> 
+        <feMergeNode in="coloredBlur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+  </defs>
+  
+  <!-- Main diamond body -->
+  <polygon points="70,15 90,35 70,55 50,35" fill="url(#interceptorGrad)" stroke="#ffffff" stroke-width="2" filter="url(#blueGlow)"/>
+  
+  <!-- Extended wings -->
+  <polygon points="20,30 50,35 45,45 15,40" fill="url(#interceptorGrad)" stroke="#ffffff" stroke-width="1"/>
+  <polygon points="120,30 90,35 95,45 125,40" fill="url(#interceptorGrad)" stroke="#ffffff" stroke-width="1"/>
+  
+  <!-- Rear stabilizers -->
+  <polygon points="50,35 55,60 45,65 40,35" fill="url(#interceptorGrad)" stroke="#ffffff" stroke-width="1"/>
+  <polygon points="90,35 85,60 95,65 100,35" fill="url(#interceptorGrad)" stroke="#ffffff" stroke-width="1"/>
+  
+  <!-- Energy core -->
+  <circle cx="70" cy="35" r="8" fill="#99ccff" stroke="#ffffff" stroke-width="2" filter="url(#blueGlow)"/>
+  <circle cx="70" cy="35" r="4" fill="#ffffff" opacity="0.8"/>
+  
+  <!-- Wing tips -->
+  <circle cx="20" cy="35" r="3" fill="#66aaff"/>
+  <circle cx="120" cy="35" r="3" fill="#66aaff"/>
+</svg>
