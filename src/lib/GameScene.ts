@@ -289,14 +289,16 @@ export class GameScene extends Phaser.Scene {
     this.lives--
     this.livesText.setText('Lives: ' + this.lives)
     
-    // Brief invulnerability
-    this.player.setAlpha(0.5)
-    this.tweens.add({
-      targets: this.player,
-      alpha: 1,
-      duration: 1000,
-      ease: 'Power2'
-    })
+    // Brief invulnerability - add safety check for tweens
+    if (this.player && this.player.active && this.tweens) {
+      this.player.setAlpha(0.5)
+      this.tweens.add({
+        targets: this.player,
+        alpha: 1,
+        duration: 1000,
+        ease: 'Power2'
+      })
+    }
     
     if (this.lives <= 0) {
       this.endGame()

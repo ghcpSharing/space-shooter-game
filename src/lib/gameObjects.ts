@@ -156,7 +156,9 @@ export class Enemy extends Phaser.GameObjects.Sprite {
     // Special movement for interceptors
     if (this.enemyType === 'interceptor') {
       const body = this.body as Phaser.Physics.Arcade.Body
-      body.setVelocityX(Math.sin(this.scene.time.now * 0.005) * 100)
+      if (body) {
+        body.setVelocityX(Math.sin(this.scene.time.now * 0.005) * 100)
+      }
     }
   }
 }
@@ -535,6 +537,7 @@ export class Boss extends Phaser.GameObjects.Sprite {
 
   private updateMovement(time: number) {
     const body = this.body as Phaser.Physics.Arcade.Body
+    if (!body) return
     
     switch (this.bossType) {
       case 'destroyer':
@@ -590,7 +593,9 @@ export class Boss extends Phaser.GameObjects.Sprite {
       bullet.setTint(0xff6b6b) // Red tint for destroyer bullets
       const speed = 200
       const body = bullet.body as Phaser.Physics.Arcade.Body
-      body.setVelocity(Math.cos(angle) * speed, Math.sin(angle) * speed)
+      if (body) {
+        body.setVelocity(Math.cos(angle) * speed, Math.sin(angle) * speed)
+      }
       this.bullets.add(bullet)
     }
   }
@@ -605,7 +610,9 @@ export class Boss extends Phaser.GameObjects.Sprite {
         bullet.setScale(0.8)
         bullet.setTint(0x4dabf7) // Blue tint for interceptor bullets
         const body = bullet.body as Phaser.Physics.Arcade.Body
-        body.setVelocity(0, 300) // Faster bullets
+        if (body) {
+          body.setVelocity(0, 300) // Faster bullets
+        }
         this.bullets.add(bullet)
       })
     }
@@ -623,7 +630,9 @@ export class Boss extends Phaser.GameObjects.Sprite {
         bullet.setScale(1.8, 1.2)
         bullet.setTint(0x51cf66) // Green tint for mothership missiles
         const body = bullet.body as Phaser.Physics.Arcade.Body
-        body.setVelocity(0, 250)
+        if (body) {
+          body.setVelocity(0, 250)
+        }
         this.bullets.add(bullet)
         
         // Add missile trail effect
@@ -648,7 +657,9 @@ export class Boss extends Phaser.GameObjects.Sprite {
       bullet.setScale(1.5, 4)
       bullet.setTint(0xff38ff) // Purple void energy
       const body = bullet.body as Phaser.Physics.Arcade.Body
-      body.setVelocity(0, 200)
+      if (body) {
+        body.setVelocity(0, 200)
+      }
       this.bullets.add(bullet)
       
       // Add void energy pulsing effect
@@ -688,11 +699,10 @@ export class Boss extends Phaser.GameObjects.Sprite {
     super.destroy()
   }
 
-  getBullets(): Phaser.GameObjects.Group {
-    // Safety check to ensure bullets group exists
-    if (!this.bullets || !this.scene || !this.scene.add) {
-      // Return an empty group if bullets group is not available
-      return { children: { entries: [] } } as Phaser.GameObjects.Group
+  getBullets(): Phaser.GameObjects.Group | null {
+    // Safety check to ensure bullets group exists and is active
+    if (!this.bullets || !this.scene || !this.scene.add || !this.bullets.active) {
+      return null
     }
     return this.bullets
   }
@@ -705,15 +715,17 @@ export class Bullet extends Phaser.GameObjects.Sprite {
     scene.physics.add.existing(this)
     
     const body = this.body as Phaser.Physics.Arcade.Body
-    body.setSize(6, 12)
-    body.setVelocityY(-500)
+    if (body) {
+      body.setSize(6, 12)
+      body.setVelocityY(-500)
+    }
     
     // Add glow effect for bullets
     this.setTint(texture === 'playerBullet' ? 0x22d3ee : 0xff4757)
   }
 
   update() {
-    if (this.y < -50) {
+    if (this.y < -50 || this.y > this.scene.cameras.main.height + 50) {
       this.destroy()
     }
   }
