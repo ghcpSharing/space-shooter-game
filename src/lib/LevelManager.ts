@@ -71,66 +71,50 @@ export class LevelManager {
   }
 
   private generateLevelConfig(levelNumber: number): LevelConfig {
-    const isBossLevel = levelNumber % 3 === 0 // Changed from 5 to 3 so bosses appear more frequently
-    
-    if (isBossLevel) {
-      return this.createBossLevel(levelNumber)
-    } else {
-      return this.createRegularLevel(levelNumber)
-    }
+    // Every level now has 3 waves, with the 3rd wave always being a boss
+    return this.createLevelWithBoss(levelNumber)
   }
 
-  private createRegularLevel(levelNumber: number): LevelConfig {
+  private createLevelWithBoss(levelNumber: number): LevelConfig {
     const difficulty = Math.floor((levelNumber - 1) / 3) + 1
     const baseHealth = Math.min(1 + Math.floor(levelNumber / 3), 5)
     const baseSpeed = Math.min(100 + (levelNumber * 10), 250)
 
+    // Every level has exactly 3 waves: 2 regular waves + 1 boss wave
     const waves: EnemyWave[] = []
-    const waveCount = Math.min(3 + Math.floor(levelNumber / 4), 6)
+    
+    // Wave 1: Fighter-focused wave
+    waves.push({
+      enemyType: 'fighter',
+      count: Math.min(3 + Math.floor(levelNumber / 2), 8),
+      spawnDelay: Math.max(800 - (levelNumber * 15), 400),
+      enemyHealth: baseHealth,
+      enemySpeed: baseSpeed
+    })
 
-    for (let i = 0; i < waveCount; i++) {
-      const waveTypes: Array<'fighter' | 'cruiser' | 'interceptor' | 'bomber'> = ['fighter', 'cruiser', 'interceptor', 'bomber']
-      const primaryType = waveTypes[Math.floor(Math.random() * waveTypes.length)]
-      
-      waves.push({
-        enemyType: primaryType,
-        count: Math.min(3 + Math.floor(levelNumber / 2) + i, 12),
-        spawnDelay: Math.max(800 - (levelNumber * 20), 300),
-        enemyHealth: baseHealth + (primaryType === 'cruiser' ? 1 : 0),
-        enemySpeed: baseSpeed + (primaryType === 'interceptor' ? 50 : 0)
-      })
-    }
+    // Wave 2: Mixed enemies wave with slightly more challenge
+    const waveTypes: Array<'cruiser' | 'interceptor' | 'bomber'> = ['cruiser', 'interceptor', 'bomber']
+    const secondWaveType = waveTypes[Math.floor(Math.random() * waveTypes.length)]
+    
+    waves.push({
+      enemyType: secondWaveType,
+      count: Math.min(2 + Math.floor(levelNumber / 3), 6),
+      spawnDelay: Math.max(700 - (levelNumber * 10), 350),
+      enemyHealth: baseHealth + (secondWaveType === 'cruiser' ? 1 : 0),
+      enemySpeed: baseSpeed + (secondWaveType === 'interceptor' ? 50 : 0)
+    })
+
+    // Determine boss type based on level progression
+    const bossTypes = ['destroyer', 'interceptor', 'mothership', 'voidcommander']
+    const bossIndex = Math.min(Math.floor((levelNumber - 1) / 4), bossTypes.length - 1)
+    const bossType = bossTypes[bossIndex]
 
     return {
       levelNumber,
       enemyWaves: waves,
-      levelTitle: `Sector ${levelNumber}`,
-      bonusMultiplier: 1 + (levelNumber * 0.1)
-    }
-  }
-
-  private createBossLevel(levelNumber: number): LevelConfig {
-    const bossTypes = ['destroyer', 'interceptor', 'mothership', 'voidcommander']
-    const bossIndex = Math.min(Math.floor((levelNumber - 3) / 3), bossTypes.length - 1) // Adjusted for new frequency
-    const bossType = bossTypes[bossIndex]
-
-    // Reduced pre-boss waves to get to boss faster
-    const preBossWaves: EnemyWave[] = [
-      {
-        enemyType: 'fighter',
-        count: Math.min(3 + Math.floor(levelNumber / 2), 8), // Reduced enemy count
-        spawnDelay: 800, // Faster spawn
-        enemyHealth: Math.min(1 + Math.floor(levelNumber / 3), 4),
-        enemySpeed: 150 + (levelNumber * 3)
-      }
-    ]
-
-    return {
-      levelNumber,
-      enemyWaves: preBossWaves,
       bossType,
-      levelTitle: `Boss Sector ${levelNumber}`,
-      bonusMultiplier: 2 + (levelNumber * 0.2)
+      levelTitle: `Level ${levelNumber}`,
+      bonusMultiplier: 1.5 + (levelNumber * 0.1) // Slightly higher bonus since every level has a boss
     }
   }
 
@@ -188,11 +172,12 @@ export class LevelManager {
   private updateLevelUI() {
     this.levelText.setText(`Level: ${this.currentLevel}`)
     
-    if (this.currentLevelConfig.bossType) {
-      this.waveText.setText('BOSS INCOMING!')
+    // Every level has exactly 3 waves: 2 enemy waves + 1 boss wave
+    if (this.currentWave >= 2) {
+      this.waveText.setText('Wave 3: BOSS!')
       this.waveText.setColor('#ff4757')
     } else {
-      this.waveText.setText(`Wave: ${this.currentWave + 1}/${this.currentLevelConfig.enemyWaves.length}`)
+      this.waveText.setText(`Wave: ${this.currentWave + 1}/3`)
       this.waveText.setColor('#4fd1c7')
     }
   }
@@ -205,23 +190,23 @@ export class LevelManager {
       this.waveInProgress = false
       this.currentWave++
 
-      if (this.currentWave >= this.currentLevelConfig.enemyWaves.length) {
-        // All waves complete - check for boss or level completion
-        if (this.currentLevelConfig.bossType) {
-          this.spawnBoss()
-        } else {
-          this.completeLevel()
-        }
+      // Every level now has exactly 3 waves: 2 enemy waves + 1 boss wave
+      if (this.currentWave >= 3) {
+        // After wave 3 (boss wave), complete the level
+        this.completeLevel()
+      } else if (this.currentWave >= this.currentLevelConfig.enemyWaves.length) {
+        // After waves 1 and 2 (enemy waves), spawn the boss for wave 3
+        this.spawnBoss()
       } else {
-        // Start next wave after delay
+        // Start next enemy wave after delay
         this.scene.time.delayedCall(2000, () => {
           this.startNextWave()
         })
       }
     }
 
-    // Spawn enemies for current wave
-    if (this.waveInProgress) {
+    // Spawn enemies for current wave (only for waves 1 and 2)
+    if (this.waveInProgress && this.currentWave < this.currentLevelConfig.enemyWaves.length) {
       this.spawnTimer += delta
       const currentWave = this.currentLevelConfig.enemyWaves[this.currentWave]
       
