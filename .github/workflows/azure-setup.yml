@@ -1,0 +1,103 @@
+name: Azure Infrastructure Setup
+
+on:
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: 'Environment to deploy to'
+        required: true
+        default: 'production'
+        type: choice
+        options:
+        - production
+        - staging
+
+env:
+  AZURE_LOCATION: 'japaneast'
+  RESOURCE_GROUP_NAME: 'rg-space-shooter-game'
+  APP_SERVICE_PLAN_NAME: 'asp-space-shooter-game'
+  WEBAPP_NAME: 'space-shooter-game'
+
+jobs:
+  infrastructure:
+    name: Setup Azure Infrastructure
+    runs-on: ubuntu-latest
+    environment: Azure
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Login to Azure
+      uses: azure/login@v2
+      with:
+        creds: ${{ secrets.AZURE_CREDENTIALS }}
+
+    - name: Create Resource Group
+      run: |
+        az group create \
+          --name ${{ env.RESOURCE_GROUP_NAME }} \
+          --location ${{ env.AZURE_LOCATION }} \
+          --tags environment=${{ github.event.inputs.environment }} project=space-shooter-game
+
+    - name: Create App Service Plan
+      run: |
+        az appservice plan create \
+          --name ${{ env.APP_SERVICE_PLAN_NAME }} \
+          --resource-group ${{ env.RESOURCE_GROUP_NAME }} \
+          --location ${{ env.AZURE_LOCATION }} \
+          --sku F1 \
+          --is-linux \
+          --tags environment=${{ github.event.inputs.environment }}
+
+    - name: Create Web App
+      run: |
+        az webapp create \
+          --name ${{ env.WEBAPP_NAME }} \
+          --resource-group ${{ env.RESOURCE_GROUP_NAME }} \
+          --plan ${{ env.APP_SERVICE_PLAN_NAME }} \
+          --runtime "NODE:20-lts" \
+          --tags environment=${{ github.event.inputs.environment }}
+
+    - name: Configure Web App Settings
+      run: |
+        az webapp config appsettings set \
+          --name ${{ env.WEBAPP_NAME }} \
+          --resource-group ${{ env.RESOURCE_GROUP_NAME }} \
+          --settings \
+            SCM_DO_BUILD_DURING_DEPLOYMENT=true \
+            WEBSITE_NODE_DEFAULT_VERSION=20
+
+    - name: Configure startup command
+      run: |
+        az webapp config set \
+          --name ${{ env.WEBAPP_NAME }} \
+          --resource-group ${{ env.RESOURCE_GROUP_NAME }} \
+          --startup-file "npm start"
+
+    - name: Enable security features
+      run: |
+        # Enable HTTPS only
+        az webapp update \
+          --name ${{ env.WEBAPP_NAME }} \
+          --resource-group ${{ env.RESOURCE_GROUP_NAME }} \
+          --https-only true
+
+        # Configure minimum TLS version
+        az webapp config set \
+          --name ${{ env.WEBAPP_NAME }} \
+          --resource-group ${{ env.RESOURCE_GROUP_NAME }} \
+          --min-tls-version 1.2
+
+    - name: Get Web App URL
+      run: |
+        URL=$(az webapp show \
+          --name ${{ env.WEBAPP_NAME }} \
+          --resource-group ${{ env.RESOURCE_GROUP_NAME }} \
+          --query defaultHostName \
+          --output tsv)
+        echo "Web App URL: https://$URL"
+
+    - name: Azure logout
+      run: az logout
+      if: always()
