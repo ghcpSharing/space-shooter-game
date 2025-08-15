@@ -2,6 +2,7 @@ import * as Phaser from 'phaser'
 import { Player, Enemy, Bullet, Boss } from '../lib/gameObjects'
 import { ParticleEffects } from '../lib/ParticleEffects'
 import { LevelManager } from '../lib/LevelManager'
+import { SoundManager } from '../lib/SoundManager'
 import playerShipSvg from '../assets/images/player-ship.svg'
 import enemyShipSvg from '../assets/images/enemy-ship.svg'
 import playerBulletSvg from '../assets/images/player-bullet.svg'
@@ -28,6 +29,7 @@ export class GameScene extends Phaser.Scene {
   private background!: Phaser.GameObjects.Image
   private stars!: Phaser.GameObjects.Group
   private levelManager!: LevelManager
+  private soundManager!: SoundManager
 
   constructor() {
     super({ key: 'GameScene' })
@@ -49,6 +51,10 @@ export class GameScene extends Phaser.Scene {
     
     // Create simple star texture for particles
     this.load.image('star', 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAQAAAAECAYAAACp8Z5+AAAAG0lEQVQIHWP8//8/AzYwiklkAQDiAwMDA+MjAAQBABAJ8FsAAAAASUVORK5CYII=')
+    
+    // Initialize sound manager and preload sounds
+    this.soundManager = new SoundManager(this)
+    this.soundManager.preloadSounds()
   }
 
   create() {
@@ -94,6 +100,9 @@ export class GameScene extends Phaser.Scene {
       strokeThickness: 2
     })
 
+    // Initialize sound manager
+    this.soundManager.initializeSounds()
+
     // Initialize level manager
     this.levelManager = new LevelManager(this)
 
@@ -103,19 +112,29 @@ export class GameScene extends Phaser.Scene {
 
   private setupCollisions() {
     // Player bullets vs enemies
-    this.physics.add.overlap(this.bullets, this.enemies, this.bulletHitEnemy, undefined, this)
+    this.physics.add.overlap(this.bullets, this.enemies, (bullet: any, enemy: any) => {
+      this.bulletHitEnemy(bullet, enemy)
+    }, undefined, this)
     
     // Player bullets vs bosses
-    this.physics.add.overlap(this.bullets, this.bosses, this.bulletHitBoss, undefined, this)
+    this.physics.add.overlap(this.bullets, this.bosses, (bullet: any, boss: any) => {
+      this.bulletHitBoss(bullet, boss)
+    }, undefined, this)
     
     // Player vs enemies
-    this.physics.add.overlap(this.player, this.enemies, this.playerHitEnemy, undefined, this)
+    this.physics.add.overlap(this.player, this.enemies, (player: any, enemy: any) => {
+      this.playerHitEnemy(player, enemy)
+    }, undefined, this)
     
     // Player vs bosses
-    this.physics.add.overlap(this.player, this.bosses, this.playerHitBoss, undefined, this)
+    this.physics.add.overlap(this.player, this.bosses, (player: any, boss: any) => {
+      this.playerHitBoss(player, boss)
+    }, undefined, this)
     
     // Player vs enemy bullets
-    this.physics.add.overlap(this.player, this.enemyBullets, this.playerHitEnemyBullet, undefined, this)
+    this.physics.add.overlap(this.player, this.enemyBullets, (player: any, bullet: any) => {
+      this.playerHitEnemyBullet(player, bullet)
+    }, undefined, this)
   }
 
   update(time: number, delta: number) {
@@ -176,7 +195,7 @@ export class GameScene extends Phaser.Scene {
     this.background.rotation += 0.0005
     
     // Move stars slowly
-    this.stars.children.entries.forEach((star) => {
+    this.stars.children.entries.forEach((star: any) => {
       star.y += 0.5
       if (star.y > this.cameras.main.height + 10) {
         star.y = -10
@@ -189,15 +208,24 @@ export class GameScene extends Phaser.Scene {
     const bullet = new Bullet(this, this.player.x, this.player.y - 30, 'playerBullet')
     bullet.setScale(0.6)
     this.bullets.add(bullet)
+    
+    // Play player shoot sound effect
+    this.soundManager.playPlayerShoot()
   }
 
-  private bulletHitEnemy(bullet: Phaser.GameObjects.GameObject, enemy: Phaser.GameObjects.GameObject) {
+  private bulletHitEnemy(bullet: any, enemy: any) {
     const enemyObj = enemy as Enemy
     const destroyed = enemyObj.takeDamage(1)
+    
+    // Play hit sound effect
+    this.soundManager.playHit()
     
     if (destroyed) {
       // Create enhanced explosion effect
       this.createExplosion(enemy.x, enemy.y, '#ff6b35')
+      
+      // Play explosion sound effect
+      this.soundManager.playExplosion()
       
       // Screen shake for impact
       this.cameras.main.shake(100, 0.01)
@@ -215,9 +243,12 @@ export class GameScene extends Phaser.Scene {
     bullet.destroy()
   }
 
-  private bulletHitBoss(bullet: Phaser.GameObjects.GameObject, boss: Phaser.GameObjects.GameObject) {
+  private bulletHitBoss(bullet: any, boss: any) {
     const bossObj = boss as Boss
     const destroyed = bossObj.takeDamage(1)
+    
+    // Play hit sound effect
+    this.soundManager.playHit()
     
     if (destroyed) {
       // Create massive explosion effect with boss-specific colors
@@ -239,6 +270,9 @@ export class GameScene extends Phaser.Scene {
       }
       
       this.createExplosion(boss.x, boss.y, explosionColor, 3.0) // Much larger explosion
+      
+      // Play boss explosion sound effect
+      this.soundManager.playBossExplosion()
       
       // Massive screen shake for boss destruction
       this.cameras.main.shake(500, 0.05)
@@ -263,22 +297,25 @@ export class GameScene extends Phaser.Scene {
     bullet.destroy()
   }
 
-  private playerHitEnemy(player: Phaser.GameObjects.GameObject, enemy: Phaser.GameObjects.GameObject) {
+  private playerHitEnemy(player: any, enemy: any) {
     this.playerTakeDamage(enemy.x, enemy.y)
     enemy.destroy()
   }
 
-  private playerHitBoss(player: Phaser.GameObjects.GameObject, boss: Phaser.GameObjects.GameObject) {
+  private playerHitBoss(player: any, boss: any) {
     this.playerTakeDamage(boss.x, boss.y)
     // Boss doesn't get destroyed by collision
   }
 
-  private playerHitEnemyBullet(player: Phaser.GameObjects.GameObject, bullet: Phaser.GameObjects.GameObject) {
+  private playerHitEnemyBullet(player: any, bullet: any) {
     this.playerTakeDamage(bullet.x, bullet.y)
     bullet.destroy()
   }
 
   private playerTakeDamage(impactX: number, impactY: number) {
+    // Play player hit sound effect
+    this.soundManager.playPlayerHit()
+    
     // Create explosion effect at impact point
     this.createExplosion(impactX, impactY, '#ff4757')
     
@@ -411,10 +448,10 @@ export class GameScene extends Phaser.Scene {
 
   private storeHighScore() {
     // Use Spark's KV storage to persist high score
-    if (typeof window !== 'undefined' && window.spark) {
-      window.spark.kv.get<number>('highScore').then(highScore => {
+    if (typeof window !== 'undefined' && (window as any).spark) {
+      (window as any).spark.kv.get('highScore').then((highScore: number) => {
         if (!highScore || this.score > highScore) {
-          window.spark.kv.set('highScore', this.score)
+          (window as any).spark.kv.set('highScore', this.score)
         }
       })
     }

@@ -174,6 +174,7 @@ export class Boss extends Phaser.GameObjects.Sprite {
   protected isInvulnerable: boolean = false
   protected healthBar!: Phaser.GameObjects.Graphics
   private bullets!: Phaser.GameObjects.Group
+  protected gameScene: any // Reference to GameScene for sound effects
 
   constructor(scene: Phaser.Scene, x: number, y: number, bossType: string = 'destroyer') {
     // Get the appropriate sprite texture based on boss type
@@ -182,6 +183,7 @@ export class Boss extends Phaser.GameObjects.Sprite {
     scene.add.existing(this)
     scene.physics.add.existing(this)
     
+    this.gameScene = scene // Store reference to access soundManager
     this.bossType = bossType
     this.setBossStats()
     
@@ -582,6 +584,11 @@ export class Boss extends Phaser.GameObjects.Sprite {
   private spreadShotAttack() {
     if (!this.bullets || !this.scene) return
     
+    // Play boss shoot sound effect
+    if (this.gameScene && this.gameScene.soundManager) {
+      this.gameScene.soundManager.playBossShoot()
+    }
+    
     const bulletCount = 3 + this.phase
     const angleStep = Math.PI / (bulletCount + 1)
     const startAngle = Math.PI * 0.3
@@ -603,6 +610,11 @@ export class Boss extends Phaser.GameObjects.Sprite {
   private rapidFireAttack() {
     if (!this.bullets || !this.scene) return
     
+    // Play boss shoot sound effect
+    if (this.gameScene && this.gameScene.soundManager) {
+      this.gameScene.soundManager.playBossShoot()
+    }
+    
     for (let i = 0; i < this.phase * 2; i++) {
       this.scene.time.delayedCall(i * 80, () => {
         if (!this.bullets || !this.scene) return
@@ -620,6 +632,11 @@ export class Boss extends Phaser.GameObjects.Sprite {
 
   private missileBarrageAttack() {
     if (!this.bullets || !this.scene) return
+    
+    // Play boss shoot sound effect
+    if (this.gameScene && this.gameScene.soundManager) {
+      this.gameScene.soundManager.playBossShoot()
+    }
     
     const missileCount = 2 + this.phase
     for (let i = 0; i < missileCount; i++) {
@@ -650,6 +667,11 @@ export class Boss extends Phaser.GameObjects.Sprite {
 
   private voidBeamAttack() {
     if (!this.bullets || !this.scene) return
+    
+    // Play boss shoot sound effect
+    if (this.gameScene && this.gameScene.soundManager) {
+      this.gameScene.soundManager.playBossShoot()
+    }
     
     // Create a wide beam effect with void energy
     for (let i = -3; i <= 3; i++) {
