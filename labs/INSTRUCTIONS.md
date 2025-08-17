@@ -172,13 +172,52 @@ Spark 除了上面在对话框中输入Prompt 来优化代码，也提供了代�
 #### 3.2.1 VSCode 设置
 ```json
 {
-    "chat.agent.maxRequests": 125, #增加 Agent Mode 下单轮对话的最大请求次数
-    "chat.checkpoints.showFileChanges": true, #Agent Mode 每轮修改后下显示文件变更内容
-    "chat.math.enabled": true, #渲染数学公式显示
-    "chat.todoListTool.enabled": true, #启用 todoList 工具, Copilot 会在制定 todoList 后，按照todoList 去工作
-    "chat.tools.autoApprove": true, #远程环境下自动批准命令行运行
+    "chat.agent.maxRequests": 125, //增加 Agent Mode 下单轮对话的最大请求次数
+    "chat.checkpoints.showFileChanges": true, //Agent Mode 每轮修改后下显示文件变更内容
+    "chat.math.enabled": true, //渲染数学公式显示
+    "chat.todoListTool.enabled": true, //启用 todoList 工具, Copilot 会在制定 todoList 后，按照todoList 去工作
+    "chat.tools.autoApprove": true,
 }
 ```
 
 #### 3.2.2 MCP Server 配置
-安装可以参考
+安装可以在 VS Code Extension 中浏览安装官方认可的 MCP Server，也可以通过配置 .vscode/mcp.json 安装自定义 MCP Server。 本次实验将安装 Playwright + Memory(自开发的，仍在测试中，后续可能会上传)
+
+在安装成功后，可以在 Chat Window 里点击查看，可以在选择启用哪些 Tools 加入到后续 Copilot 处理中
+<img width="602" height="447" alt="image" src="https://github.com/user-attachments/assets/1924388f-3d80-40a2-8011-085b77c68409" />
+ MCP Prompt 可以通过在 Chat Window 中输入 / 的方式来引用, Resource 则是通过添加 Context，目前 Cursor 只能调用 MCP Tools。
+ <img width="444" height="297" alt="image" src="https://github.com/user-attachments/assets/8a7abcf2-36e5-43a8-bb31-672317d8f242" />
+ <img width="591" height="251" alt="image" src="https://github.com/user-attachments/assets/0f02ef06-76a0-4e20-9f70-18543f85c8b1" />
+
+
+#### 3.2.3 Copilot Instruction 的配置
+本次采用 [memory-bank](https://github.com/github/awesome-copilot/blob/main/instructions/memory-bank.instructions.md) 做为底座（.github/copilot-instructions.md）, [Beast Mode](https://github.com/github/awesome-copilot/blob/main/chatmodes/4.1-Beast.chatmode.md) 做为 Chat Mode, [test-with-playwright](https://github.com/github/awesome-copilot/blob/main/chatmodes/playwright-tester.chatmode.md) 为 Resuable Prompts。这三种 Prompts 文件的关系可参考 [guides/打造AWESOME-Copilot指南.md](https://github.com/ghcpSharing/library/blob/main/guides/%E6%89%93%E9%80%A0AWESOME-Copilot%E6%8C%87%E5%8D%97.md)
+
+
+### 3.3 与 GitHub Copilot 协同开发
+本节的两个场景基本为一次对话即可完成任务。
+#### 3.3.1 生成 Playwright 测试用例并测试
+引用 playwright-tester prompt 来发起自动化页面测试, 运行 Playwright MCP 需要安装相关依赖, 参考如下：
+```
+npx playwright install
+npx playwright install --with-deps chromium
+npx playwright install chromium
+sudo npx playwright install-deps
+```
+如下为中途测试截图，可以看见 Copilot 在自主多轮的 Playwright 页面测试。
+<img width="1511" height="840" alt="image" src="https://github.com/user-attachments/assets/ae8e243c-ff0d-4996-afd3-281dbc6e507a" />
+如下为测试结果
+<img width="1594" height="904" alt="image" src="https://github.com/user-attachments/assets/16509871-1ad7-4949-8504-2f213f81bdd1" />
+
+#### 3.3.2 添加发射子弹音效
+如下为其修改过程，同时也会查看生成的 memory 文件，也会主动去测试(虽然音频无法通过 playwright 验证)。
+<img width="756" height="626" alt="image" src="https://github.com/user-attachments/assets/09266bc4-ac49-436c-a084-a436f25728e7" />
+最后游玩的时候确实有了打击音效。
+<img width="994" height="946" alt="image" src="https://github.com/user-attachments/assets/b8e12f12-06ed-4064-9d03-3c9b58962d4e" />
+
+
+
+
+
+
+
