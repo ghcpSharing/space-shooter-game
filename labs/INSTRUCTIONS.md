@@ -156,65 +156,29 @@ Spark 除了上面在对话框中输入Prompt 来优化代码，也提供了代�
 <img width="1421" height="634" alt="image" src="https://github.com/user-attachments/assets/5f6483d9-29e5-4ccd-af7b-9ef92b5acdaf" />
 
 
-## 阶段三：本地 VS Code + Copilot 深度开发
+另， Coding Agent 支持自定义 Instructions 与 MCP Server 集成，后续会专门做一期 Lab 来介绍。
+
+## 阶段三：本地 VS Code + GitHub Copilot 的 Vibe Computing
+如果说前面的 Spark 和 Coding Agent 云端实现 Vibe Coding。 在本地环境中我们将进一步深化和 AI 协作，这个阶段将通过 VS Code 和 Copilot 实现更高效的开发体验。
+
 ### 3.1 目标
-在本地环境进行深度迭代：性能优化、体验打磨、测试覆盖、可配置化与可发布性。
+将本地环境调成预备状态，从 VS Code 的 GitHub Copilot 设定到 MCP/GitHub Extension 再到 Prompts 这三个维度来完成。
+- 默认情况下 GitHub Copilot 的prompt并没有对项目开发做定向的优化，所以一开始用的时候会觉得 Copilot 并不是那么聪明，如果是默认的配置它其实有很多潜力并没有被释放出来。
 
 ### 3.2 环境准备
-1. Clone 仓库：`git clone <repo>`
-2. 安装依赖：`pnpm i` / `npm install`
-3. 运行开发服务器：`pnpm dev` -> 浏览器验证
-4. 安装 VS Code 插件：Copilot / Copilot Chat / ESLint / TypeScript TSS Helper / GitLens / Tailwind IntelliSense
-5. 可选：配置 `.vscode/settings.json` 强制保存自动修复 & 类型检查
+- Clone 阶段二的 GitHub 仓库到本地
+- 安装 VS Code + GitHub Copilot & GitHub Copilot Chat
 
-### 3.3 Copilot 使用模式
-| 场景 | 技巧 | 示例 Prompt |
-|------|------|-------------|
-| 小函数补全 | 行内建议 | 输入函数签名等待建议 |
-| 批量重构 | Chat + 选择文件上下文 | “Refactor collision logic into quadtree util, keep API stable” |
-| 生成测试 | Chat 指令 | “Generate vitest tests for LevelManager covering invalid JSON and timed spawn” |
-| 代码解释 | `//@copilot explain` | 选中复杂循环让 Copilot 解释 |
-| 性能分析 | 结合 Profile 输出 | “Suggest micro-optimizations for this hot loop (paste loop)” |
+#### 3.2.1 VSCode 设置
+```json
+{
+    "chat.agent.maxRequests": 125, #增加 Agent Mode 下单轮对话的最大请求次数
+    "chat.checkpoints.showFileChanges": true, #Agent Mode 每轮修改后下显示文件变更内容
+    "chat.math.enabled": true, #渲染数学公式显示
+    "chat.todoListTool.enabled": true, #启用 todoList 工具, Copilot 会在制定 todoList 后，按照todoList 去工作
+    "chat.tools.autoApprove": true, #远程环境下自动批准命令行运行
+}
+```
 
-### 3.4 性能优化关注点
-| 维度 | 策略 | 工具 |
-|------|------|------|
-| 渲染 | 批绘制 / 合并状态切换 / 降低 overdraw | Canvas 层分析 / Chrome DevTools Paint |
-| 分配 | 对象池 (子弹/粒子) / 复用数组 | Performance Memory 快照 |
-| 碰撞 | 分区 / 四叉树 / 网格桶 | 自定义基准 & flame chart |
-| 频率 | 降低非关键逻辑频率 (UI 刷新 / 掉落计算) | requestAnimationFrame 分析 |
-| 打包 | Tree-shaking / 代码分割 / 压缩 | Vite 构建分析 (analyze plugin) |
-
-### 3.5 测试策略
-- 层级划分：
-	- 单元：纯函数（关卡解析、冷却计算、碰撞检测）
-	- 集成：系统交互（Spawn + Collision + Score）
-	- 端到端（可选）：Playwright 自动游玩 10 秒检测无错误输出
-- 覆盖重点：行为确定性（随机数可注入种子）+ 边界（极限敌机数量）
-
-### 3.6 资产与音频扩展
-- 引入 `AudioSystem`：懒加载、并发限制、通道音量
-- 背景音乐分关卡切换（淡入淡出）
-- SFX：射击、爆炸、拾取、受伤（统一在资产清单中声明）
-
-### 3.7 可配置化
-- `config/game.json`：全局参数（玩家速度、子弹冷却、最大敌机数）
-- `levels/*.json`：每关节奏时间轴（t=秒 -> 事件列表）
-- 加入 `ConfigService` 负责热加载（开发模式）
-
-### 3.8 发布与打包
-1. 运行 `pnpm build`
-2. 检查构建产物大小 & Source Map
-3. 部署（任选）：GitHub Pages / Vercel / Azure Static Web Apps
-4. 验证：
-	 - 首屏加载 (LCP) < 2.5s（模拟中端设备）
-	 - 控制台无严重错误 / 未捕获 Promise 拒绝
-
-### 3.9 Exit Criteria
-- ✅ 关键系统性能收敛（主循环 16ms 内）
-- ✅ 单测覆盖核心逻辑 & 关键失败路径
-- ✅ 音频 & 粒子特效体验完整
-- ✅ 配置化支持快速调参 (无需改源码)
-- ✅ 发布链接 & 标签版本 (e.g. v1.0.0)
-
-> 提示：性能优化遵循“测量—定位—假设—验证”四步，避免无数据的过早优化。
+#### 3.2.2 MCP Server 配置
+安装可以参考
