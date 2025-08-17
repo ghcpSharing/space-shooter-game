@@ -51,7 +51,7 @@ Instruction Document for GitHub Copilot Lab: Space Shooter Game
 ```
 
 ### 1.3 迭代节奏
-因为基于上述这么一个笼统需求， Spark 有可能不是每次生成的代码及效果都一致，以下记录本次 Spark 原型开发的迭代过程。
+因为基于上述这么一个笼统需求， Spark 有可能不是每次生成的代码及效果都一致，以下记录本次 Spark 原型开发的迭代过程(耗时不超过30分钟)。
 
 #### 1.3.1 初次生成并实时体验
 - Prompt：
@@ -115,31 +115,39 @@ Spark 除了上面在对话框中输入Prompt 来优化代码，也提供了代�
 <img width="352" height="229" alt="image" src="https://github.com/user-attachments/assets/39bfc100-c750-42bc-8252-0261dfe609c6" />
 
 
+
 ## 阶段二：GitHub 仓库 + Coding Agent 协作迭代
 ### 2.1 目标
 将原型演进为结构更清晰、可协作、可持续迭代的代码基线：
-- 模块化：关卡、音频、实体、系统、UI 分层
-- 自动化：Lint / Type Check / 基础单测 / 构建工作流
+- 功能改进：修改关卡机制，让 Boss 更快的出现
+- DevSecOps：依赖包漏洞扫描 + Continous Integration + Security Check + Continous Deployment 
 - 协作流程：任务 -> 分支 -> PR -> Review -> Merge
-- 引入 AI Coding Agent 执行重复或结构性修改（批量重构、生成测试、文档骨架）
+- 引入 AI Coding Agent 执行重复或结构性修改（重构应用代码、引入 GitHub Action + Advanced Security + Azure Web App）
 
-### 2.2 仓库初始化步骤
-1. 在 GitHub 上创建 / Fork 目标仓库 (private 或 public)
-2. 将阶段一代码推送为 `main` 初始提交
-3. 建立保护策略：
-	- main 需要 PR 才能合并
-	- 至少 1 名 Reviewer / 状态检查通过
-4. 添加基础工作流：
-	- `.github/workflows/ci.yml`：安装依赖 -> Lint -> Type Check -> 构建 -> 运行测试
+### 2.2 交给 Coding Agent 完成
+以下为记录 引入 Coding Agent 协作过程（耗时不超过 1 个小时）
+1. 接第一章节中 Spark 应用中创建的 GitHub Repo
+2. 创建 Issue 去描述需要解决的问题
+3. 将 Issue 分配给 Copilot 即可
 
-### 2.3 分支与命名约定
-| 类型 | 前缀 | 示例 | 说明 |
-|------|------|------|------|
-| 新功能 | feat/ | feat/audio-engine | 独立功能模块 |
-| 修复 | fix/ | fix/collision-bounds | Bug 修复 |
-| 重构 | refactor/ | refactor/entity-system | 内部结构调整 |
-| 性能 | perf/ | perf/bullet-pool | 优化热点 |
-| 文档 | docs/ | docs/api-gameobjects | 文档与说明 |
+
+#### 2.2.1 修改关卡机制，让 Boss 更快的出现
+参考 [每关的第三波就得有 Boss](https://github.com/ghcpSharing/space-shooter-game/issues/6), 
+- 创建 issue 完毕后分配给  Copilot
+- Copilot 会基于这个 Issue 生成一个新的分支来开发并解决这个问题
+- 同时会有一个 Live Session 可以看到其工作日志
+- 当修改完毕后会发起 [Pull Request](https://github.com/ghcpSharing/space-shooter-game/pull/7) 并邀请我来做 Code Review
+  - 在这个 PR 描述的最后，有一个特别有意思的是它贴了一张测试结果的截图，它显示在第一关就就有 Boss 出现的血条，原来它也是有沙盒环境来构建并测试的。 点赞！
+
+
+#### 2.2.2 添加 GitHub Workflow
+参考 [添加 github action 做 cicd](https://github.com/ghcpSharing/space-shooter-game/issues/8), 
+过程如 2.2.1 一样，只需要创建 Issue 并发给 Copilot 就好。它很好的完成了 CI + Security + CD。 
+尤其在安全部分 GitHub Advanced Security 扫描出了对应的依赖库的版本漏洞及解决方案，并有对应的 PR 已经做好等我 Review, 例如[Bump tailwindcss from 4.0.17 to 4.1.12](https://github.com/ghcpSharing/space-shooter-game/pull/14)。同时静态代码扫描报出对应的代码风险及修改建议,例如[Prototype-polluting function](https://github.com/ghcpSharing/space-shooter-game/security/code-scanning/1)。
+
+<img width="1444" height="422" alt="image" src="https://github.com/user-attachments/assets/b848675d-ed25-4c7a-aa3a-daf736c16d52" />
+
+
 
 ### 2.4 AI Coding Agent 典型用例
 - 重构：将散落在多个文件的碰撞逻辑集中到 `CollisionSystem`
