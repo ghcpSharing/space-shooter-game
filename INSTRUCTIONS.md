@@ -34,31 +34,26 @@ Instruction Document for GitHub Copilot Lab: Space Shooter Game
 
 ## 阶段一：GitHub Spark 原型开发
 ### 1.1 目标
-在最短时间（≤ 1~2 小时）内得到“可玩”的核心循环：
-- 玩家飞船：移动（方向键 / WASD / 触控虚拟摇杆）
+在最短时间（≤ 1）内得到“可玩”的核心循环：
+- 玩家飞船：移动
 - 射击：基础子弹发射 & 冷却
 - 敌机生成：简单波次或定时生成
 - 碰撞判定：玩家子弹击毁敌机、敌机撞击玩家
 - 基础得分与生命系统
 
 ### 1.2 准备
-1. 打开 GitHub Spark，新建 Space Shooter 工作区
-2. 选择前端模板（Vite + TypeScript + Tailwind 亦可）
-3. 通过 Prompt 描述最小玩法（建议示例见下）
+1. 打开 [GitHub Spark](https://github.com/spark)
+2. 通过 Prompt 描述最小玩法（建议示例见下）
 
-示例 Prompt（可粘贴给 Spark / AI Chat）：
+示例 Prompt（粘贴给 Spark）：
 ```
-Create a minimal 2D top-down space shooter in TypeScript + canvas:
-- Player ship can move with arrow keys and shoot bullets with space
-- Spawn simple enemy ships entering from top at intervals
-- Detect bullet-enemy collisions, remove both, increment score
-- Detect enemy-player collision -> reduce player lives, game over at 0
-- Keep update loop ~60fps requestAnimationFrame
-- Keep code modular (entities, input, game loop) and minimal
+帮我用 phaser game 做一个 Space Shooter 的游戏。
 ```
 
-### 1.3 迭代节奏（Micro Loop）
-| 步骤 | 动作 | 审查点 |
+### 1.3 迭代节奏
+因为基于上述这么一个笼统需求， Spark 有可能不是每次生成的代码及效果都一致，以下记录本次 Spark 原型开发的迭代过程。
+
+| 步骤 | Prompt | 阶段结果 |
 |------|------|--------|
 | 1 | 生成初版代码 | 运行是否无重大报错 |
 | 2 | 加入调试 HUD（FPS/Score/Lives） | 数值是否更新 |
