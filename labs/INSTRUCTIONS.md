@@ -212,7 +212,9 @@ sudo npx playwright install-deps
 #### 3.3.2 添加发射子弹音效
 如下为其修改过程，同时也会查看生成的 memory 文件，也会主动去测试(虽然音频无法通过 playwright 验证)。
 <img width="756" height="626" alt="image" src="https://github.com/user-attachments/assets/09266bc4-ac49-436c-a084-a436f25728e7" />
+
 最后游玩的时候确实有了打击音效。
+
 <img width="994" height="946" alt="image" src="https://github.com/user-attachments/assets/b8e12f12-06ed-4064-9d03-3c9b58962d4e" />
 
 
