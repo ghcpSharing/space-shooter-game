@@ -53,36 +53,69 @@ Instruction Document for GitHub Copilot Lab: Space Shooter Game
 ### 1.3 迭代节奏
 因为基于上述这么一个笼统需求， Spark 有可能不是每次生成的代码及效果都一致，以下记录本次 Spark 原型开发的迭代过程。
 
-| 步骤 | Prompt | 阶段结果 |
-|------|------|--------|
-| 1 | 生成初版代码 | 运行是否无重大报错 |
-| 2 | 加入调试 HUD（FPS/Score/Lives） | 数值是否更新 |
-| 3 | 引入敌机波次参数 | 波次间隔是否生效 |
-| 4 | 粗粒度性能检查 (Chrome Performance) | 主线程占用 < 10ms/frame |
-| 5 | 记录原型 GAP | 列出后续架构与优化项 |
+#### 1.3.1 初次生成并实时体验
+- Prompt：
+```
+帮我用 phaser game 做一个 Space Shooter 的游戏。
+```
+整体的可玩性功能完成度高，基本上述 1.1 的目标就已经完成了。但之前的 prompt 并没提及这些点，就是丑。
+![spark1](https://github.com/user-attachments/assets/3595fae9-10b2-4c2f-bd5b-76a5ad6f4f7d)
 
-### 1.4 最佳实践
-- 控制范围：一次只让 AI 生成一个增量（如“添加粒子爆炸效果”）
-- 保持模块拆分：`GameLoop / Entities / Systems / Input` 避免单文件 > 300 行
-- 及时清理：删除无用控制台输出、未使用变量、重复函数
-- 基线注释：关键数据结构（敌机队列、碰撞网格）添加 1~2 行解释
-
-### 1.5 产出清单（Exit Criteria）
-- ✅ 可运行并可结束的游戏循环
-- ✅ 基础评分 / 生命展示
-- ✅ 简易 README 或开发笔记（记录核心循环 & 已知缺陷）
-- ✅ 原型性能：普通硬件保持 ≥ 55 FPS
-- ✅ 待办列表：架构重构点 / 待加入系统（音频、关卡、特效、UI）
-
-### 1.6 移交准备
-在 Spark 导出 / 复制代码前，整理：
-- `KNOWN_ISSUES.md`：列出逻辑缺陷（例如：边缘碰撞不精确）
-- `NEXT_REV_TASKS.md`：按优先级列出即将进入阶段二的任务（例如：音频系统、关卡配置 JSON、粒子池）
-
-> 提示：不要在阶段一过早加入复杂状态管理或 ECS 框架，保持学习面最小化。
+#### 1.3.2 界面美化
+- Prompt：
+```
+现在的游戏界面有点丑， 下面的这些 assets 有可以好好利用 。
+https://foozlecc.itch.io/void-main-ship
+https://foozlecc.itch.io/void-environment-pack
+https://foozlecc.itch.io/void-fleet-pack-1
+https://ansimuz.itch.io/warped-space-shooter
+https://piiixl.itch.io/space
+```
+我就是找了几个assets扔给了 Spark, 这个界面美化效果提升确实很棒。
+![spark2](https://github.com/user-attachments/assets/3126ae2d-6db7-4258-8e0b-96ab161f82a6)
 
 
-## 阶段二：Fork 到 GitHub 仓库 + Coding Agent 协作迭代
+#### 1.3.3 引入关底 Boss
+- Prompt：
+```
+你能不能设定一些关卡，加入对应的boss?
+```
+这一轮我没看到 Boss(后面看代码发现其实得在第三个 Sector 的关底出现），然后我又追加了段 prompt 在第三个 Sector Boss 出现了。
+```
+没看到boss 呢？ 能加个大点的乱军飞机，它能开炮有血条。
+```
+同时发现，在前面两个 Sector 的敌军会变大变少并且飘来飘去，难度上确实有上升。GIF 录制时长的问题我就没加到下面的动图中，可以点击 [spark-space-shooter-game](https://space-shooter-game--nikawang.github.app/) 试玩体验。
+![spark3](https://github.com/user-attachments/assets/f4eceecf-2842-47fe-a588-a8dfd4139992)
+
+#### 1.3.4 基于实现体验提出修改建议
+Spark 除了上面在对话框中输入Prompt 来优化代码，也提供了代码修改的操作，但这个平台下去手改代码有点低效。它能让用户直接在 Live Editor 里基于某个区域来改修改。例如：
+
+1. 输入 Prompt 来修改
+<img width="1149" height="937" alt="image" src="https://github.com/user-attachments/assets/0d469506-d14e-458f-a917-ac65c28a3646" />
+进入 `Select Element to edit` 后选择顶部的标题， 并输入 `Change to red for the fonts`
+
+它会自动对这块区域字体进行修改，效果如下：
+<img width="975" height="816" alt="image" src="https://github.com/user-attachments/assets/34568d5d-f170-4692-aca9-f66cebd1abd4" />
+
+2. 在左侧编辑面板调整页面样式
+<img width="1452" height="843" alt="image" src="https://github.com/user-attachments/assets/7fdb8fda-7d8a-4331-9851-ef4b7f167279" />
+
+
+
+### 1.4 可能会遇到的问题
+-  无法开启 Spark
+  - 确认当前的帐户是否提供 Spark  功能
+- 测试过程中可能会遇到 Bug 引起的 Crash, 直接点 Auto Fix 即可。
+  <img width="1361" height="544" alt="image" src="https://github.com/user-attachments/assets/e0d01e6b-3719-4d11-bb35-995b67032dab" />
+
+
+### 1.5 移交准备
+在 Spark 中原型体验结束后，可以直接将发布。也可将其代码保存至 GitHub Repo 进行深度代码开发。在右上角选择即可
+
+<img width="352" height="229" alt="image" src="https://github.com/user-attachments/assets/39bfc100-c750-42bc-8252-0261dfe609c6" />
+
+
+## 阶段二：GitHub 仓库 + Coding Agent 协作迭代
 ### 2.1 目标
 将原型演进为结构更清晰、可协作、可持续迭代的代码基线：
 - 模块化：关卡、音频、实体、系统、UI 分层
