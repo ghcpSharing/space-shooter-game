@@ -134,8 +134,11 @@ Spark 除了上面在对话框中输入Prompt 来优化代码，也提供了代�
 #### 2.2.1 修改关卡机制，让 Boss 更快的出现
 参考 [每关的第三波就得有 Boss](https://github.com/ghcpSharing/space-shooter-game/issues/6), 
 - 创建 issue 完毕后分配给  Copilot
-- Copilot 会基于这个 Issue 生成一个新的分支来开发并解决这个问题
-- 同时会有一个 Live Session 可以看到其工作日志
+- Copilot 会基于这个 Issue 生成一个新的分支来开发并解决这个问题。
+- 同时会有一个 Live Session 可以看到其工作日志, 在 PR 页面通过点击  Development 阶段的 In progress 去查看:
+  <img width="1226" height="529" alt="image" src="https://github.com/user-attachments/assets/b556f5ed-a8af-4bb1-bf82-cdda1602c41e" />
+  <img width="1608" height="800" alt="image" src="https://github.com/user-attachments/assets/4eba02f0-f1dd-4661-a8bc-c3735f723678" />
+  
 - 当修改完毕后会发起 [Pull Request](https://github.com/ghcpSharing/space-shooter-game/pull/7) 并邀请我来做 Code Review
   - 在这个 PR 描述的最后，有一个特别有意思的是它贴了一张测试结果的截图，它显示在第一关就就有 Boss 出现的血条，原来它也是有沙盒环境来构建并测试的。 点赞！
 
@@ -145,66 +148,12 @@ Spark 除了上面在对话框中输入Prompt 来优化代码，也提供了代�
 过程如 2.2.1 一样，只需要创建 Issue 并发给 Copilot 就好。它很好的完成了 CI + Security + CD。 
 尤其在安全部分 GitHub Advanced Security 扫描出了对应的依赖库的版本漏洞及解决方案，并有对应的 PR 已经做好等我 Review, 例如[Bump tailwindcss from 4.0.17 to 4.1.12](https://github.com/ghcpSharing/space-shooter-game/pull/14)。同时静态代码扫描报出对应的代码风险及修改建议,例如[Prototype-polluting function](https://github.com/ghcpSharing/space-shooter-game/security/code-scanning/1)。
 
-<img width="1444" height="422" alt="image" src="https://github.com/user-attachments/assets/b848675d-ed25-4c7a-aa3a-daf736c16d52" />
+<img width="1626" height="817" alt="image" src="https://github.com/user-attachments/assets/aec4a60f-b6e4-4ec0-b46d-be2c96a5e026" />
 
+它这个 Flow 的最后它给出了游戏在 Azure Web App 上的[游玩地址](http://space-shooter-game.azurewebsites.net/)
 
-
-### 2.4 AI Coding Agent 典型用例
-- 重构：将散落在多个文件的碰撞逻辑集中到 `CollisionSystem`
-- 批量代码风格统一：统一 export 方式与命名
-- 自动生成测试：为 `LevelManager` 生成单测骨架
-- 生成配置：根据关卡节奏描述产出 JSON 配置 (敌机类型 + 时间轴)
-- 评审辅助：分析 PR diff 给出潜在风险点（循环复杂度、重复逻辑）
-
-示例任务描述（供 Agent 使用）：
-```
-Task: Introduce an AudioSystem for background music & sfx
-Requirements:
-- Load assets lazily
-- Provide playOneShot(type) and loop(trackId)
-- Avoid overlapping identical SFX within 50ms window
-- Expose volume master/music/sfx channels
-Add minimal unit tests for rate limiting logic.
-```
-
-### 2.5 Issue / PR 模板要点
-Issue 模板字段：
-- 背景 / 胶囊描述
-- 验收标准 (Gherkin 可选)
-- 风险与回滚方式
-- 关联任务 / 依赖
-
-PR 模板字段：
-- 变更摘要（WHAT + WHY）
-- 截图 / 性能前后对比（如有）
-- 风险清单 & 手动验证步骤
-- 相关 Issue 引用
-
-### 2.6 模块化拆分建议
-- `core/loop.ts`：主循环调度 & 时间步长
-- `systems/`：`InputSystem`, `SpawnSystem`, `CollisionSystem`, `AudioSystem`, `ParticleSystem`
-- `entities/`：`Player`, `Enemy`, `Bullet`, `PowerUp`
-- `levels/`：配置 JSON + 解析器
-- `ui/`：HUD、菜单、暂停界面
-- `assets/manifest.json`：统一资源声明 + 版本校验
-
-### 2.7 质量基线 (Quality Gates)
-| 类型 | 工具 | 目标 | 触发失败策略 |
-|------|------|------|--------------|
-| 语法 & 风格 | ESLint | 0 error | 阻止合并 |
-| 类型安全 | tsc --noEmit | 0 error | 阻止合并 |
-| 单测 | Vitest/Jest | 覆盖核心系统 | 未达标标记警告 |
-| 构建体积 | vite build | 初始 < 1MB gzip | 超标提示优化 |
-| 性能冒烟 | headless 脚本 | 生成帧耗时分位 | 异常需复查 |
-
-### 2.8 里程碑完成判定 (Exit Criteria)
-- ✅ 核心系统按职责拆分完成
-- ✅ CI 工作流稳定通过
-- ✅ 至少 3 个代表性单测（关卡解析 / 碰撞 / 冷却逻辑）
-- ✅ README 增补架构图（文本或 Mermaid）
-- ✅ 已创建下一阶段性能与体验优化 Issue 列表
-
-> 提示：阶段二不要过早引入重量级 ECS 框架；优先保证模块职责清晰与自动化可见性。
+在 VSCode 中也通过 GitHub Pull Request extension 创建 Issue 并分配给 Copilot,也能 Track 它的 Session 日志
+<img width="1421" height="634" alt="image" src="https://github.com/user-attachments/assets/5f6483d9-29e5-4ccd-af7b-9ef92b5acdaf" />
 
 
 ## 阶段三：本地 VS Code + Copilot 深度开发
